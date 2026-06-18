@@ -37,13 +37,17 @@ function Index() {
     <div className="flex flex-col bg-[#F5F5F5]">
       <div className="h-screen flex flex-col overflow-hidden relative">
         <Navbar />
-        <Hero />
+        <main id="main">
+          <Hero />
+        </main>
       </div>
-      <TokenCards />
-      <HowItWorks />
-      <WhySui />
-      <Reserves />
-      <CtaBand />
+      <main aria-label="Magmos protocol overview">
+        <TokenCards />
+        <HowItWorks />
+        <WhySui />
+        <Reserves />
+        <CtaBand />
+      </main>
       <Footer />
     </div>
   );
