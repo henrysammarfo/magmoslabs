@@ -1,9 +1,11 @@
 import { ArrowRight } from "lucide-react";
 import { Marquee } from "./Marquee";
+import { useWaitlistModal } from "./WaitlistModal";
 
 export function Hero() {
+  const { open } = useWaitlistModal();
   return (
-    <section className="flex-1 px-6 pt-20 pb-6 flex items-end">
+    <section className="flex-1 px-6 pt-20 pb-6 flex items-end" aria-labelledby="hero-title">
       <div
         className="relative w-full rounded-2xl overflow-hidden max-w-[88rem] mx-auto"
         style={{ height: "calc(100vh - 96px)" }}
@@ -19,6 +21,7 @@ export function Hero() {
         <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-white/10 to-transparent" />
         <div className="relative z-10 flex flex-col items-start justify-start h-full p-12 pt-36">
           <h1
+            id="hero-title"
             className="text-black text-5xl md:text-6xl font-medium leading-tight max-w-xl mb-4"
             style={{ letterSpacing: "-0.04em" }}
           >
@@ -31,15 +34,16 @@ export function Hero() {
             accumulation index rise daily — yield from Scallop, DeepBook, and Aftermath,
             compounded on-chain.
           </p>
-          <a
-            href="#launch"
+          <button
+            type="button"
+            onClick={() => open("join")}
             className="inline-flex items-center gap-3 bg-black text-white text-base md:text-lg font-medium pl-8 pr-2 py-2 rounded-full hover:bg-gray-800 transition-colors duration-200"
           >
-            Get AURUM
+            Join us
             <span className="bg-white rounded-full p-2">
               <ArrowRight className="w-5 h-5 text-black" />
             </span>
-          </a>
+          </button>
           <Marquee />
         </div>
       </div>

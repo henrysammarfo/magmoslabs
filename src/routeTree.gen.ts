@@ -9,8 +9,44 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SaurumRouteImport } from './routes/saurum'
+import { Route as ReservesRouteImport } from './routes/reserves'
+import { Route as ProtocolRouteImport } from './routes/protocol'
+import { Route as DocsRouteImport } from './routes/docs'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as AurumRouteImport } from './routes/aurum'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SaurumRoute = SaurumRouteImport.update({
+  id: '/saurum',
+  path: '/saurum',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReservesRoute = ReservesRouteImport.update({
+  id: '/reserves',
+  path: '/reserves',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProtocolRoute = ProtocolRouteImport.update({
+  id: '/protocol',
+  path: '/protocol',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AurumRoute = AurumRouteImport.update({
+  id: '/aurum',
+  path: '/aurum',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +55,116 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/aurum': typeof AurumRoute
+  '/dashboard': typeof DashboardRoute
+  '/docs': typeof DocsRoute
+  '/protocol': typeof ProtocolRoute
+  '/reserves': typeof ReservesRoute
+  '/saurum': typeof SaurumRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/aurum': typeof AurumRoute
+  '/dashboard': typeof DashboardRoute
+  '/docs': typeof DocsRoute
+  '/protocol': typeof ProtocolRoute
+  '/reserves': typeof ReservesRoute
+  '/saurum': typeof SaurumRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/aurum': typeof AurumRoute
+  '/dashboard': typeof DashboardRoute
+  '/docs': typeof DocsRoute
+  '/protocol': typeof ProtocolRoute
+  '/reserves': typeof ReservesRoute
+  '/saurum': typeof SaurumRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/aurum'
+    | '/dashboard'
+    | '/docs'
+    | '/protocol'
+    | '/reserves'
+    | '/saurum'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/aurum'
+    | '/dashboard'
+    | '/docs'
+    | '/protocol'
+    | '/reserves'
+    | '/saurum'
+  id:
+    | '__root__'
+    | '/'
+    | '/aurum'
+    | '/dashboard'
+    | '/docs'
+    | '/protocol'
+    | '/reserves'
+    | '/saurum'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AurumRoute: typeof AurumRoute
+  DashboardRoute: typeof DashboardRoute
+  DocsRoute: typeof DocsRoute
+  ProtocolRoute: typeof ProtocolRoute
+  ReservesRoute: typeof ReservesRoute
+  SaurumRoute: typeof SaurumRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/saurum': {
+      id: '/saurum'
+      path: '/saurum'
+      fullPath: '/saurum'
+      preLoaderRoute: typeof SaurumRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reserves': {
+      id: '/reserves'
+      path: '/reserves'
+      fullPath: '/reserves'
+      preLoaderRoute: typeof ReservesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/protocol': {
+      id: '/protocol'
+      path: '/protocol'
+      fullPath: '/protocol'
+      preLoaderRoute: typeof ProtocolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/aurum': {
+      id: '/aurum'
+      path: '/aurum'
+      fullPath: '/aurum'
+      preLoaderRoute: typeof AurumRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +177,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AurumRoute: AurumRoute,
+  DashboardRoute: DashboardRoute,
+  DocsRoute: DocsRoute,
+  ProtocolRoute: ProtocolRoute,
+  ReservesRoute: ReservesRoute,
+  SaurumRoute: SaurumRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

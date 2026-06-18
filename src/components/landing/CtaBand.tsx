@@ -1,8 +1,11 @@
 import { ArrowRight } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { useWaitlistModal } from "./WaitlistModal";
 
 export function CtaBand() {
+  const { open } = useWaitlistModal();
   return (
-    <section id="launch" className="px-6 py-12">
+    <section id="launch" className="px-6 py-12" aria-labelledby="cta-title">
       <div className="max-w-[88rem] mx-auto bg-black text-white rounded-2xl p-12 md:p-20 relative overflow-hidden">
         <div
           className="absolute inset-0 opacity-30"
@@ -13,6 +16,7 @@ export function CtaBand() {
         />
         <div className="relative max-w-3xl">
           <h2
+            id="cta-title"
             className="text-4xl md:text-6xl font-medium leading-tight mb-6"
             style={{ letterSpacing: "-0.04em" }}
           >
@@ -23,21 +27,22 @@ export function CtaBand() {
             compound. No protocol owns your capital.
           </p>
           <div className="flex flex-wrap items-center gap-3">
-            <a
-              href="#"
+            <button
+              type="button"
+              onClick={() => open("wallet")}
               className="inline-flex items-center gap-3 bg-white text-black text-base md:text-lg font-medium pl-8 pr-2 py-2 rounded-full hover:bg-white/90 transition-colors duration-200"
             >
-              Launch App
+              Open Wallet
               <span className="bg-black rounded-full p-2">
                 <ArrowRight className="w-5 h-5 text-white" />
               </span>
-            </a>
-            <a
-              href="#"
+            </button>
+            <Link
+              to="/docs"
               className="inline-flex items-center px-7 py-3 rounded-full border border-white/20 text-white text-base md:text-lg font-medium hover:bg-white/5 transition-colors duration-200"
             >
               Read the Docs
-            </a>
+            </Link>
           </div>
         </div>
       </div>
