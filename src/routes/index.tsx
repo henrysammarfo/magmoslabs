@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+// @ts-expect-error - font side-effect import has no types
 import "@fontsource-variable/figtree";
 
 import { Navbar } from "../components/landing/Navbar";
