@@ -132,13 +132,38 @@
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
+@theme {
+  --font-sans: "Figtree Variable", ui-sans-serif, system-ui, sans-serif;
+  --color-magmos-bg: #f5f5f5;
+  --color-magmos-ink: #0a0a0a;
+  --color-magmos-gold: #c8a04a;
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
   }
 
+  html,
   body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+    background-color: #f5f5f5;
+    color: #0a0a0a;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
   }
 }
+
+@keyframes magmos-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.magmos-marquee-track {
+  animation: magmos-marquee 28s linear infinite;
+}
+
+.magmos-marquee-mask {
+  mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+}
+
