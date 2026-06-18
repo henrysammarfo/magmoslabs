@@ -35,13 +35,11 @@ export const Route = createFileRoute("/")({
 function Index() {
   return (
     <div className="flex flex-col bg-[#F5F5F5]">
-      <div className="h-screen flex flex-col overflow-hidden relative">
-        <Navbar />
-        <main id="main">
+      <main id="main">
+        <div className="h-screen flex flex-col overflow-hidden relative">
+          <Navbar />
           <Hero />
-        </main>
-      </div>
-      <main aria-label="Magmos protocol overview">
+        </div>
         <TokenCards />
         <HowItWorks />
         <WhySui />
