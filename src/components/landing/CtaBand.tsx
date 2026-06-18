@@ -1,8 +1,11 @@
 import { ArrowRight } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { useWaitlistModal } from "./WaitlistModal";
 
 export function CtaBand() {
+  const { open } = useWaitlistModal();
   return (
-    <section id="launch" className="px-6 py-12">
+    <section id="launch" className="px-6 py-12" aria-labelledby="cta-title">
       <div className="max-w-[88rem] mx-auto bg-black text-white rounded-2xl p-12 md:p-20 relative overflow-hidden">
         <div
           className="absolute inset-0 opacity-30"
