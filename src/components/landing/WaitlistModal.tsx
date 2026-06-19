@@ -22,18 +22,27 @@ export function WaitlistModalProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [variant, setVariant] = useState<ModalVariant>("join");
   const [email, setEmail] = useState("");
+  const [touched, setTouched] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const dialogRef = useRef<HTMLDivElement>(null);
   const lastFocusedRef = useRef<HTMLElement | null>(null);
+
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const trimmed = email.trim();
+  const isValid = EMAIL_RE.test(trimmed);
+  const showInline = touched && trimmed.length > 0 && !isValid;
 
   const open = useCallback((v: ModalVariant = "join") => {
     lastFocusedRef.current = document.activeElement as HTMLElement;
     setVariant(v);
     setEmail("");
+    setTouched(false);
     setSubmitted(false);
     setError("");
+    setLoading(false);
     setIsOpen(true);
   }, []);
 
@@ -80,15 +89,23 @@ export function WaitlistModalProvider({ children }: { children: ReactNode }) {
     };
   }, [isOpen, close, submitted]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmed = email.trim();
-    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+    setTouched(true);
+    if (!isValid) {
       setError("Please enter a valid email address.");
       return;
     }
     setError("");
-    setSubmitted(true);
+    setLoading(true);
+    try {
+      await new Promise((r) => setTimeout(r, 900));
+      setSubmitted(true);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const title = variant === "wallet" ? "Open your Magmos wallet" : "Join the Magmos waitlist";
