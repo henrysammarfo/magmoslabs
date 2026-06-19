@@ -183,26 +183,46 @@ export function WaitlistModalProvider({ children }: { children: ReactNode }) {
                     <input
                       type="email"
                       required
+                      autoComplete="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        if (error) setError("");
+                      }}
+                      onBlur={() => setTouched(true)}
                       placeholder="you@domain.com"
-                      aria-invalid={!!error}
-                      aria-describedby={error ? "waitlist-error" : undefined}
-                      className="w-full px-4 py-3 rounded-full bg-[#F5F5F5] border border-transparent focus:border-black focus:outline-none text-black placeholder:text-black/40"
+                      disabled={loading}
+                      aria-invalid={!!error || showInline}
+                      aria-describedby={error || showInline ? "waitlist-error" : undefined}
+                      className={`w-full px-4 py-3 rounded-full bg-[#F5F5F5] border focus:outline-none text-black placeholder:text-black/40 transition-colors disabled:opacity-60 ${
+                        error || showInline
+                          ? "border-red-400 focus:border-red-500"
+                          : "border-transparent focus:border-black"
+                      }`}
                     />
                   </label>
-                  {error && (
+                  {(error || showInline) && (
                     <p id="waitlist-error" role="alert" className="text-sm text-red-600 px-2">
-                      {error}
+                      {error || "That doesn't look like a valid email address."}
                     </p>
                   )}
                   <button
                     type="submit"
-                    className="w-full inline-flex items-center justify-center gap-3 bg-black text-white font-medium pl-6 pr-2 py-2 rounded-full hover:bg-gray-800 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-black focus:outline-none"
+                    disabled={loading || (touched && !isValid)}
+                    aria-busy={loading}
+                    className="w-full inline-flex items-center justify-center gap-3 bg-black text-white font-medium pl-6 pr-2 py-2 rounded-full hover:bg-gray-800 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-black focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    {variant === "wallet" ? "Open wallet" : "Join the waitlist"}
+                    {loading
+                      ? "Submitting…"
+                      : variant === "wallet"
+                      ? "Open wallet"
+                      : "Join the waitlist"}
                     <span className="bg-white rounded-full p-1.5">
-                      <ArrowRight className="w-4 h-4 text-black" />
+                      {loading ? (
+                        <Loader2 className="w-4 h-4 text-black animate-spin" />
+                      ) : (
+                        <ArrowRight className="w-4 h-4 text-black" />
+                      )}
                     </span>
                   </button>
                   <p className="text-xs text-black/40 text-center pt-2">
