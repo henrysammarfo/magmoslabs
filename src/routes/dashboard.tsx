@@ -12,9 +12,10 @@ import {
 } from "lucide-react";
 import { Navbar } from "../components/landing/Navbar";
 import { Footer } from "../components/landing/Footer";
-import { Spinner } from "../components/landing/Spinner";
 import { ErrorState } from "../components/landing/ErrorState";
 import { EarningsChart } from "../components/dashboard/EarningsChart";
+import { DashboardSkeleton } from "../components/dashboard/DashboardSkeleton";
+import { TransactionsTable } from "../components/dashboard/TransactionsTable";
 import { useWaitlistModal } from "../components/landing/WaitlistModal";
 import { fetchDashboard, type Balance } from "../lib/mock-data";
 
@@ -44,7 +45,7 @@ export const Route = createFileRoute("/dashboard")({
   errorComponent: DashboardError,
   notFoundComponent: () => (
     <DashboardChrome>
-      <ErrorState title="Page not found." message="That dashboard view doesn't exist." />
+      <ErrorState title="Page not found." message="That dashboard view doesn't exist." homeHref="/dashboard" />
     </DashboardChrome>
   ),
 });
@@ -55,6 +56,22 @@ const iconMap = {
   trending: TrendingUp,
   activity: Activity,
 } as const;
+
+function DashboardHeaderShell() {
+  return (
+    <header className="flex flex-wrap items-end justify-between gap-6 mb-10">
+      <div>
+        <p className="text-sm text-black/50 uppercase tracking-widest mb-3">Dashboard</p>
+        <h1 className="text-black text-4xl md:text-5xl font-medium" style={{ letterSpacing: "-0.04em" }}>
+          Welcome back, Forgekeeper.
+        </h1>
+        <p className="text-black/60 mt-3 max-w-xl">
+          Your AURUM stays $1. Your sAURUM compounds while you sleep. Track everything in one place.
+        </p>
+      </div>
+    </header>
+  );
+}
 
 function DashboardChrome({ children }: { children: React.ReactNode }) {
   return (
@@ -73,7 +90,8 @@ function DashboardChrome({ children }: { children: React.ReactNode }) {
 function DashboardPending() {
   return (
     <DashboardChrome>
-      <Spinner label="Loading your positions" />
+      <DashboardHeaderShell />
+      <DashboardSkeleton />
     </DashboardChrome>
   );
 }
@@ -82,9 +100,12 @@ function DashboardError({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
   return (
     <DashboardChrome>
+      <DashboardHeaderShell />
       <ErrorState
-        title="We couldn't load your dashboard."
-        message={error.message || "The yield indexer didn't respond. Please retry."}
+        title="Your dashboard didn't load."
+        message="We couldn't reach the yield indexer. Your positions are safe on-chain — only this view failed. Try again, or head home while we recover."
+        details={error.message}
+        homeHref="/"
         onRetry={() => {
           reset();
           router.invalidate();
@@ -131,7 +152,7 @@ function DashboardPage() {
         </div>
       </header>
 
-      <Suspense fallback={<Spinner label="Loading widgets" />}>
+      <Suspense fallback={<DashboardSkeleton />}>
         <DashboardWidgets />
       </Suspense>
     </DashboardChrome>
@@ -148,9 +169,14 @@ function DashboardWidgets() {
       <div className="grid lg:grid-cols-3 gap-6 mt-10">
         <section
           aria-labelledby="earnings-title"
-          className="lg:col-span-2 bg-white rounded-2xl p-6 sm:p-8 border border-black/5"
+          className="lg:col-span-2 magmos-card rounded-3xl p-6 sm:p-8 relative overflow-hidden"
         >
-          <div className="flex flex-wrap items-end justify-between gap-3 mb-6">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -top-24 -right-24 w-72 h-72 rounded-full opacity-60"
+            style={{ background: "radial-gradient(circle, rgba(200,160,74,0.18), transparent 65%)" }}
+          />
+          <div className="relative flex flex-wrap items-end justify-between gap-3 mb-6">
             <div>
               <h2
                 id="earnings-title"
@@ -170,12 +196,14 @@ function DashboardWidgets() {
               </span>
             </div>
           </div>
-          <EarningsChart data={data.earnings} />
+          <div className="relative">
+            <EarningsChart data={data.earnings} />
+          </div>
         </section>
 
         <section
           aria-labelledby="activity-title"
-          className="bg-white rounded-2xl p-6 sm:p-8 border border-black/5"
+          className="magmos-card rounded-3xl p-6 sm:p-8"
         >
           <h2
             id="activity-title"
@@ -214,7 +242,7 @@ function DashboardWidgets() {
 
       <section
         aria-labelledby="positions-title"
-        className="mt-10 bg-white rounded-2xl p-6 sm:p-8 border border-black/5"
+        className="mt-10 magmos-card rounded-3xl p-6 sm:p-8"
       >
         <div className="flex items-center justify-between mb-6">
           <h2
@@ -243,7 +271,13 @@ function DashboardWidgets() {
               </div>
               <div className="hidden sm:block">
                 <div className="h-2 bg-black/5 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#C8A04A]" style={{ width: p.allocation }} />
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: p.allocation,
+                      background: "linear-gradient(90deg, #8B6A22, #C8A04A 60%, #F1D38A)",
+                    }}
+                  />
                 </div>
                 <p className="text-xs text-black/50 mt-1">{p.allocation}</p>
               </div>
@@ -254,15 +288,20 @@ function DashboardWidgets() {
         </div>
       </section>
 
+      <div className="mt-10">
+        <TransactionsTable />
+      </div>
+
       <section
         aria-labelledby="reserve-title"
-        className="mt-10 bg-black text-white rounded-2xl p-8 sm:p-10 relative overflow-hidden"
+        className="mt-10 magmos-card-dark text-white rounded-3xl p-8 sm:p-10 relative overflow-hidden"
       >
         <div
-          className="absolute inset-0 opacity-30"
+          aria-hidden="true"
+          className="absolute inset-0 opacity-40"
           style={{
             background:
-              "radial-gradient(800px 400px at 90% 50%, rgba(200,160,74,0.4), transparent 60%)",
+              "radial-gradient(800px 400px at 90% 50%, rgba(200,160,74,0.45), transparent 60%)",
           }}
         />
         <div className="relative grid md:grid-cols-3 gap-8">
@@ -304,18 +343,23 @@ function BalanceGrid({ balances }: { balances: Balance[] }) {
         {balances.map((b) => {
           const Icon = iconMap[b.iconKey];
           return (
-            <article key={b.label} className="bg-white rounded-2xl p-6 border border-black/5">
-              <div className="flex items-center justify-between mb-6">
+            <article key={b.label} className="magmos-card rounded-2xl p-6 relative overflow-hidden">
+              <span
+                aria-hidden="true"
+                className="absolute -top-12 -right-12 w-32 h-32 rounded-full opacity-50"
+                style={{ background: "radial-gradient(circle, rgba(200,160,74,0.18), transparent 70%)" }}
+              />
+              <div className="relative flex items-center justify-between mb-6">
                 <span className="text-sm text-black/50">{b.label}</span>
-                <span className="bg-black/5 rounded-full p-2">
+                <span className="bg-black/5 rounded-full p-2 border border-black/5">
                   <Icon className="w-4 h-4 text-black" />
                 </span>
               </div>
-              <div className="text-3xl font-medium text-black" style={{ letterSpacing: "-0.03em" }}>
+              <div className="relative text-3xl font-medium text-black" style={{ letterSpacing: "-0.03em" }}>
                 {b.value}
                 {b.suffix && <span className="text-base text-black/40 ml-2">{b.suffix}</span>}
               </div>
-              <p className="text-sm text-black/50 mt-2">{b.sub}</p>
+              <p className="relative text-sm text-black/50 mt-2">{b.sub}</p>
             </article>
           );
         })}

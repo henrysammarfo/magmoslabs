@@ -2,7 +2,7 @@ import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { ArrowUpRight } from "lucide-react";
 import { PageShell } from "../components/landing/PageShell";
-import { Spinner } from "../components/landing/Spinner";
+import { DocsSkeleton } from "../components/landing/DocsSkeleton";
 import { ErrorState } from "../components/landing/ErrorState";
 import { fetchDocs } from "../lib/mock-data";
 
@@ -29,14 +29,22 @@ export const Route = createFileRoute("/docs")({
   loader: ({ context }) => context.queryClient.ensureQueryData(docsQuery),
   component: DocsPage,
   pendingComponent: () => (
-    <PageShell eyebrow="Docs" title="Build with AURUM.">
-      <Spinner label="Loading reference" />
+    <PageShell
+      eyebrow="Docs"
+      title="Build with AURUM."
+      description="Everything you need to integrate the Magmos yield dollar into your Sui application."
+    >
+      <DocsSkeleton />
     </PageShell>
   ),
   errorComponent: ({ error, reset }) => <DocsError error={error} reset={reset} />,
   notFoundComponent: () => (
     <PageShell eyebrow="Docs" title="Build with AURUM.">
-      <ErrorState title="Page not found." message="That doc section doesn't exist." />
+      <ErrorState
+        title="That doc section doesn't exist."
+        message="The page you're looking for may have moved. Browse the docs index to find what you need."
+        homeHref="/docs"
+      />
     </PageShell>
   ),
 });
@@ -47,7 +55,9 @@ function DocsError({ error, reset }: { error: Error; reset: () => void }) {
     <PageShell eyebrow="Docs" title="Build with AURUM.">
       <ErrorState
         title="Docs are temporarily unreachable."
-        message={error.message || "Our docs index didn't respond. Please retry in a moment."}
+        message="Our docs index didn't respond. The protocol is unaffected — only this reference view failed to load. Retry, or head home and try again shortly."
+        details={error.message}
+        homeHref="/"
         onRetry={() => {
           reset();
           router.invalidate();
@@ -70,7 +80,7 @@ function DocsPage() {
           <Link
             key={s.slug}
             to="/docs"
-            className="bg-white rounded-2xl p-6 border border-black/5 hover:border-black/20 transition-colors group"
+            className="magmos-card rounded-2xl p-6 group block"
           >
             <div className="flex items-start justify-between mb-3">
               <span className="text-xs uppercase tracking-widest text-[#8B6A22] bg-[#C8A04A]/15 px-2 py-1 rounded-full">
