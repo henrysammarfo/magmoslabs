@@ -30,6 +30,20 @@ export interface EarningsPoint {
   value: number;
 }
 
+export type TxKind = "Mint" | "Stake" | "Unstake" | "Rebalance" | "Refine" | "Withdraw";
+export type TxStatus = "Confirmed" | "Pending" | "Failed";
+
+export interface Transaction {
+  id: string;
+  hash: string;
+  kind: TxKind;
+  token: string;
+  amount: string;
+  numeric: number; // signed USDC equivalent for sorting
+  status: TxStatus;
+  timestamp: number; // ms since epoch
+}
+
 export interface DashboardData {
   balances: Balance[];
   positions: Position[];
@@ -37,6 +51,22 @@ export interface DashboardData {
   earnings: EarningsPoint[];
   reserveRatio: string;
   totalBacking: string;
+}
+
+export interface TransactionsQuery {
+  search?: string;
+  kind?: TxKind | "all";
+  status?: TxStatus | "all";
+  page?: number;
+  pageSize?: number;
+}
+
+export interface TransactionsPage {
+  rows: Transaction[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
 }
 
 export interface DocSection {
@@ -86,6 +116,93 @@ export async function fetchDashboard(): Promise<DashboardData> {
     ],
     reserveRatio: "102.4%",
     totalBacking: "$24.8M",
+  };
+}
+
+// ---- Transactions: paginated + filterable ----
+
+const KINDS: TxKind[] = ["Mint", "Stake", "Unstake", "Rebalance", "Refine", "Withdraw"];
+const STATUSES: TxStatus[] = ["Confirmed", "Confirmed", "Confirmed", "Confirmed", "Pending", "Failed"];
+const TOKENS = [
+  "USDC → AURUM",
+  "AURUM → sAURUM",
+  "sAURUM → AURUM",
+  "Scallop ↔ DeepBook",
+  "Yield accrued",
+  "AURUM → USDC",
+];
+
+function seeded(i: number) {
+  // Deterministic pseudo-random in [0,1)
+  const x = Math.sin(i * 9301 + 49297) * 233280;
+  return x - Math.floor(x);
+}
+
+const ALL_TX: Transaction[] = Array.from({ length: 94 }, (_, i) => {
+  const kind = KINDS[i % KINDS.length];
+  const status = STATUSES[Math.floor(seeded(i) * STATUSES.length)];
+  const token = TOKENS[Math.floor(seeded(i + 5) * TOKENS.length)];
+  const sign = kind === "Unstake" || kind === "Withdraw" ? -1 : 1;
+  const n = Math.round(seeded(i + 11) * 5000 + 20);
+  const amount = `${sign < 0 ? "−" : "+"}${n.toLocaleString("en-US")}.${String(
+    Math.floor(seeded(i + 17) * 100),
+  ).padStart(2, "0")}`;
+  const hash = `0x${Math.floor(seeded(i + 23) * 0xfffffff)
+    .toString(16)
+    .padStart(7, "0")}…${Math.floor(seeded(i + 31) * 0xfffff)
+    .toString(16)
+    .padStart(5, "0")}`;
+  return {
+    id: `tx-${i + 1}`,
+    hash,
+    kind,
+    token,
+    amount,
+    numeric: sign * n,
+    status,
+    timestamp: Date.now() - i * 1000 * 60 * 47,
+  };
+});
+
+function fmtTime(ts: number) {
+  const diff = Date.now() - ts;
+  const m = Math.floor(diff / 60000);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  return `${d}d ago`;
+}
+
+export function formatTxTime(ts: number) {
+  return fmtTime(ts);
+}
+
+export async function fetchTransactions(q: TransactionsQuery = {}): Promise<TransactionsPage> {
+  await wait(300);
+  // Simulate transient failure rarely (disabled by default)
+  const { search = "", kind = "all", status = "all", page = 1, pageSize = 8 } = q;
+  const needle = search.trim().toLowerCase();
+  const filtered = ALL_TX.filter((t) => {
+    if (kind !== "all" && t.kind !== kind) return false;
+    if (status !== "all" && t.status !== status) return false;
+    if (!needle) return true;
+    return (
+      t.hash.toLowerCase().includes(needle) ||
+      t.token.toLowerCase().includes(needle) ||
+      t.kind.toLowerCase().includes(needle)
+    );
+  });
+  const total = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(Math.max(1, page), totalPages);
+  const start = (safePage - 1) * pageSize;
+  return {
+    rows: filtered.slice(start, start + pageSize),
+    total,
+    page: safePage,
+    pageSize,
+    totalPages,
   };
 }
 
