@@ -6,8 +6,8 @@ interface Props {
 
 export function EarningsChart({ data }: Props) {
   const w = 720;
-  const h = 240;
-  const pad = { l: 36, r: 16, t: 20, b: 28 };
+  const h = 260;
+  const pad = { l: 40, r: 20, t: 24, b: 32 };
   const innerW = w - pad.l - pad.r;
   const innerH = h - pad.t - pad.b;
   const max = Math.max(...data.map((d) => d.value));
@@ -20,14 +20,31 @@ export function EarningsChart({ data }: Props) {
     return { x, y, ...d };
   });
 
-  const linePath = points
-    .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`)
-    .join(" ");
+  // Smooth Catmull-Rom -> Bezier
+  const smooth = (pts: { x: number; y: number }[]) => {
+    if (pts.length < 2) return "";
+    let d = `M ${pts[0].x.toFixed(2)} ${pts[0].y.toFixed(2)}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i - 1] || pts[i];
+      const p1 = pts[i];
+      const p2 = pts[i + 1];
+      const p3 = pts[i + 2] || p2;
+      const c1x = p1.x + (p2.x - p0.x) / 6;
+      const c1y = p1.y + (p2.y - p0.y) / 6;
+      const c2x = p2.x - (p3.x - p1.x) / 6;
+      const c2y = p2.y - (p3.y - p1.y) / 6;
+      d += ` C ${c1x.toFixed(2)} ${c1y.toFixed(2)}, ${c2x.toFixed(2)} ${c2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
+    }
+    return d;
+  };
+
+  const linePath = smooth(points);
   const areaPath =
     linePath +
-    ` L ${points[points.length - 1].x.toFixed(1)} ${pad.t + innerH}` +
-    ` L ${points[0].x.toFixed(1)} ${pad.t + innerH} Z`;
+    ` L ${points[points.length - 1].x.toFixed(2)} ${pad.t + innerH}` +
+    ` L ${points[0].x.toFixed(2)} ${pad.t + innerH} Z`;
 
+  const last = points[points.length - 1];
   const gridYs = [0, 0.25, 0.5, 0.75, 1].map((t) => pad.t + innerH * t);
 
   return (
@@ -40,6 +57,7 @@ export function EarningsChart({ data }: Props) {
       <defs>
         <linearGradient id="earningsArea" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#C8A04A" stopOpacity="0.45" />
+          <stop offset="60%" stopColor="#C8A04A" stopOpacity="0.12" />
           <stop offset="100%" stopColor="#C8A04A" stopOpacity="0" />
         </linearGradient>
         <linearGradient id="earningsLine" x1="0" y1="0" x2="1" y2="0">
@@ -47,6 +65,13 @@ export function EarningsChart({ data }: Props) {
           <stop offset="50%" stopColor="#C8A04A" />
           <stop offset="100%" stopColor="#F1D38A" />
         </linearGradient>
+        <radialGradient id="earningsGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#C8A04A" stopOpacity="0.45" />
+          <stop offset="100%" stopColor="#C8A04A" stopOpacity="0" />
+        </radialGradient>
+        <filter id="earningsBlur" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="3.5" />
+        </filter>
       </defs>
 
       {gridYs.map((y, i) => (
@@ -56,18 +81,37 @@ export function EarningsChart({ data }: Props) {
           x2={w - pad.r}
           y1={y}
           y2={y}
-          stroke="#000"
+          stroke="#0A0A0A"
           strokeOpacity="0.06"
-          strokeDasharray="2 4"
+          strokeDasharray="2 6"
         />
       ))}
 
-      <path d={areaPath} fill="url(#earningsArea)" />
-      <path d={linePath} fill="none" stroke="url(#earningsLine)" strokeWidth="2.5" strokeLinecap="round" />
+      <path d={areaPath} fill="url(#earningsArea)" className="magmos-area-in" />
 
-      {points.map((p, i) => (
-        <circle key={i} cx={p.x} cy={p.y} r={i === points.length - 1 ? 4 : 2.5} fill="#0A0A0A" />
-      ))}
+      {/* soft underline glow */}
+      <path
+        d={linePath}
+        fill="none"
+        stroke="#C8A04A"
+        strokeOpacity="0.45"
+        strokeWidth="6"
+        filter="url(#earningsBlur)"
+      />
+
+      <path
+        d={linePath}
+        fill="none"
+        stroke="url(#earningsLine)"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="magmos-line-draw"
+      />
+
+      {/* leading pulse */}
+      <circle cx={last.x} cy={last.y} r={4} fill="url(#earningsGlow)" className="magmos-pulse-ring" />
+      <circle cx={last.x} cy={last.y} r={4} fill="#0A0A0A" stroke="#fff" strokeWidth="2" />
 
       {points
         .filter((_, i) => i % 2 === 0)
@@ -75,7 +119,7 @@ export function EarningsChart({ data }: Props) {
           <text
             key={p.day}
             x={p.x}
-            y={h - 8}
+            y={h - 10}
             textAnchor="middle"
             className="fill-black/40"
             fontSize="10"
@@ -87,7 +131,7 @@ export function EarningsChart({ data }: Props) {
       {[max, max / 2, 0].map((v, i) => (
         <text
           key={i}
-          x={pad.l - 8}
+          x={pad.l - 10}
           y={pad.t + (innerH / 2) * i + 4}
           textAnchor="end"
           className="fill-black/40"
