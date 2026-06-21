@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { Suspense } from "react";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import {
   ArrowUpRight,
   TrendingUp,
@@ -77,7 +76,6 @@ export const Route = createFileRoute("/dashboard")({
     ],
     links: [{ rel: "canonical", href: "/dashboard" }],
   }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(dashboardQuery),
   component: DashboardPage,
   pendingComponent: DashboardPending,
   errorComponent: DashboardError,
@@ -198,15 +196,14 @@ function DashboardPage() {
         </div>
       </header>
 
-      <Suspense fallback={<DashboardSkeleton />}>
-        <DashboardWidgets />
-      </Suspense>
+      <DashboardWidgets />
     </DashboardChrome>
   );
 }
 
 function DashboardWidgets() {
-  const { data } = useSuspenseQuery(dashboardQuery);
+  const { data, isPending } = useQuery(dashboardQuery);
+  if (isPending || !data) return <DashboardSkeleton />;
 
   return (
     <>
