@@ -22,7 +22,7 @@ import { loadProfile } from "../lib/profile";
 
 const dashboardQuery = queryOptions({
   queryKey: ["dashboard", { owner: "" }],
-  queryFn: () => fetchDashboard(),
+  queryFn: () => fetchDashboard(""),
   staleTime: 30_000,
 });
 
@@ -193,10 +193,12 @@ function DashboardPage() {
 function DashboardWidgets() {
   const account = useCurrentAccount();
   const owner = account?.address ?? "";
+  if (!owner) return <Navigate to="/" />;
   const { data, isPending, isError, error, refetch } = useQuery({
     ...dashboardQuery,
     queryKey: ["dashboard", { owner }],
-    queryFn: () => fetchDashboard(owner || undefined),
+    queryFn: () => fetchDashboard(owner),
+    enabled: Boolean(owner),
   });
   if (isError) {
     return (
@@ -339,7 +341,7 @@ function DashboardWidgets() {
       </section>
 
       <div className="mt-10">
-        <TransactionsTable owner={owner || undefined} />
+        <TransactionsTable owner={owner} />
       </div>
 
       <section
