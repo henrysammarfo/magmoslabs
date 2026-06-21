@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { LogoIcon } from "./LogoIcon";
+import { OpenWalletButton } from "../wallet/OpenWalletButton";
 
 const links: { label: string; to: string }[] = [
   { label: "Protocol", to: "/protocol" },
@@ -38,12 +39,7 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Link
-            to="/aurum"
-            className="hidden md:inline-flex bg-black text-white text-base font-medium px-7 py-2.5 rounded-full hover:bg-gray-800 transition-colors"
-          >
-            Open Wallet
-          </Link>
+          <OpenWalletButton className="hidden md:inline-flex bg-black text-white text-base font-medium px-7 py-2.5 rounded-full hover:bg-gray-800 transition-colors" />
           <button
             type="button"
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
@@ -68,13 +64,10 @@ export function Navbar() {
               {l.label}
             </Link>
           ))}
-          <Link
-            to="/aurum"
+          <OpenWalletButton
             onClick={() => setMobileOpen(false)}
             className="mt-2 bg-black text-white font-medium px-6 py-3 rounded-full hover:bg-gray-800 transition-colors text-center"
-          >
-            Open Wallet
-          </Link>
+          />
         </div>
       )}
     </header>

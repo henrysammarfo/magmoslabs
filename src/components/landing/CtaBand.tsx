@@ -1,5 +1,5 @@
-import { ArrowRight } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { OpenWalletButton } from "../wallet/OpenWalletButton";
 
 export function CtaBand() {
   return (
@@ -25,15 +25,7 @@ export function CtaBand() {
             compound. No protocol owns your capital.
           </p>
           <div className="flex flex-wrap items-center gap-3">
-            <Link
-              to="/aurum"
-              className="inline-flex items-center gap-3 bg-white text-black text-base md:text-lg font-medium pl-8 pr-2 py-2 rounded-full hover:bg-white/90 transition-colors duration-200"
-            >
-              Open Wallet
-              <span className="bg-black rounded-full p-2">
-                <ArrowRight className="w-5 h-5 text-white" />
-              </span>
-            </Link>
+            <OpenWalletButton className="inline-flex items-center gap-3 bg-white text-black text-base md:text-lg font-medium pl-8 pr-2 py-2 rounded-full hover:bg-white/90 transition-colors duration-200" />
             <Link
               to="/docs"
               className="inline-flex items-center px-7 py-3 rounded-full border border-white/20 text-white text-base md:text-lg font-medium hover:bg-white/5 transition-colors duration-200"
