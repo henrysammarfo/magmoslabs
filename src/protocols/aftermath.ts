@@ -43,15 +43,14 @@ export class AftermathAdapter implements YieldAdapter {
         headers,
       );
       const ids = pools.map((p) => p.objectId ?? p.poolId ?? "").filter(Boolean);
-      const chunks = chunk(ids, 40);
+      const chunks = chunk(ids.slice(0, 80), 40);
       const list: AftermathPoolStats[] = [];
-      for (const group of chunks.slice(0, 5)) {
-        const stats = await postJsonWithTimeout<AftermathStatsResponse[]>(
-          this.statsUrl,
-          { poolIds: group },
-          8_000,
-          headers,
-        );
+      const responses = await Promise.all(
+        chunks.map((group) =>
+          postJsonWithTimeout<AftermathStatsResponse[]>(this.statsUrl, { poolIds: group }, 8_000, headers),
+        ),
+      );
+      for (const stats of responses) {
         for (const s of stats) list.push(s);
       }
       if (list.length === 0) {

@@ -358,6 +358,22 @@ function tokenByKind(kind: TxKind): string {
   return "Scallop <-> Aftermath <-> DeepBook";
 }
 
+function microToAmountString(raw: unknown): string {
+  const n = Number(raw ?? 0);
+  if (!Number.isFinite(n) || n === 0) return "-";
+  return amount(Math.abs(n) / 1_000_000);
+}
+
+function txAmountFromEvent(kind: TxKind, eventParsed: Record<string, unknown> | undefined): string {
+  if (!eventParsed) return "-";
+  if (kind === "Mint") return microToAmountString(eventParsed.collateral_in ?? eventParsed.aurum_out);
+  if (kind === "Stake") return microToAmountString(eventParsed.aurum_in ?? eventParsed.saurum_out);
+  if (kind === "Refine" || kind === "Unstake")
+    return microToAmountString(eventParsed.saurum_in ?? eventParsed.aurum_out);
+  if (kind === "Withdraw") return microToAmountString(eventParsed.aurum_in ?? eventParsed.collateral_out);
+  return "-";
+}
+
 async function fetchAllTransactions(): Promise<Transaction[]> {
   const fetchByMoveCall = async (
     module: "aurum" | "saurum" | "automation",
@@ -377,11 +393,12 @@ async function fetchAllTransactions(): Promise<Transaction[]> {
             };
           };
         };
+        events?: Array<{ parsedJson?: Record<string, unknown> }>;
       }>;
     }>("suix_queryTransactionBlocks", [
       {
         filter: { MoveFunction: { package: MAGMOS_PACKAGE_ID, module, function: func } },
-        options: { showInput: true, showEffects: true },
+        options: { showInput: true, showEffects: true, showEvents: true },
       },
       null,
       cap,
@@ -418,6 +435,7 @@ async function fetchAllTransactions(): Promise<Transaction[]> {
           };
         };
       };
+      events?: Array<{ parsedJson?: Record<string, unknown> }>;
     }
   >();
   for (const bucket of buckets) {
@@ -432,12 +450,13 @@ async function fetchAllTransactions(): Promise<Transaction[]> {
     const fn = r.transaction?.data?.transaction?.transactions?.[0]?.MoveCall?.function;
     const kind = fn ? kindFromFunction(fn) : r.kindHint;
     const status: TxStatus = r.effects?.status?.status === "failure" ? "Failed" : "Confirmed";
+    const parsed = r.events?.[0]?.parsedJson;
     return {
       id: `tx-${i + 1}`,
       hash: shortDigest(r.digest),
       kind,
       token: tokenByKind(kind),
-      amount: "-",
+      amount: txAmountFromEvent(kind, parsed),
       numeric: kind === "Withdraw" || kind === "Unstake" ? -1 : 1,
       status,
       timestamp: Number(r.timestampMs ?? Date.now()),
