@@ -70,6 +70,7 @@ function AurumPage() {
   const [forgeAmount, setForgeAmount] = useState("10");
   const [smeltAmount, setSmeltAmount] = useState("1");
   const [withdrawAmount, setWithdrawAmount] = useState("1");
+  const [withdrawRecipient, setWithdrawRecipient] = useState("");
   const [withdrawMode, setWithdrawMode] = useState<"aurum" | "saurum">("aurum");
   const [status, setStatus] = useState<string>("");
   const rate = data?.usdcUsd ?? 1;
@@ -137,34 +138,23 @@ function AurumPage() {
   const runWithdraw = async () => {
     try {
       const amount = parseAmountToMicro(withdrawAmount);
-      const tx = new Transaction();
-      if (withdrawMode === "aurum") {
-        setStatus("Preparing AURUM withdrawal...");
-        const coin = await getCoinWithBalance(AURUM_TYPE, amount);
-        const aurum = tx.splitCoins(tx.object(coin.coinObjectId), [tx.pure.u64(amount)]);
-        const usdc = tx.moveCall({
-          target: `${MAGMOS_PACKAGE_ID}::aurum::melt`,
-          typeArguments: [USDC_TYPE],
-          arguments: [tx.object(TREASURY_ID), aurum],
-        });
-        tx.transferObjects([usdc], account!.address);
-      } else {
-        setStatus("Preparing sAURUM withdrawal...");
-        const coin = await getCoinWithBalance(SAURUM_TYPE, amount);
-        const saurum = tx.splitCoins(tx.object(coin.coinObjectId), [tx.pure.u64(amount)]);
-        const aurum = tx.moveCall({
-          target: `${MAGMOS_PACKAGE_ID}::saurum::refine`,
-          typeArguments: [USDC_TYPE],
-          arguments: [tx.object(VAULT_ID), tx.object(TREASURY_ID), saurum],
-        });
-        tx.transferObjects([aurum], account!.address);
+      const recipient = withdrawRecipient.trim();
+      if (!/^0x[0-9a-fA-F]{64}$/.test(recipient)) {
+        throw new Error("Enter a valid Sui wallet address (0x + 64 hex chars).");
       }
+
+      const tx = new Transaction();
+      const coinType = withdrawMode === "aurum" ? AURUM_TYPE : SAURUM_TYPE;
+      setStatus(`Preparing ${withdrawMode === "aurum" ? "AURUM" : "sAURUM"} transfer...`);
+      const coin = await getCoinWithBalance(coinType, amount);
+      const split = tx.splitCoins(tx.object(coin.coinObjectId), [tx.pure.u64(amount)]);
+      tx.transferObjects([split], recipient);
 
       const result = await signAndExecuteTransaction({ transaction: tx });
       setStatus(
         withdrawMode === "aurum"
-          ? `Withdraw (AURUM -> USDC) submitted: ${result.digest}`
-          : `Withdraw (sAURUM -> AURUM) submitted: ${result.digest}`,
+          ? `AURUM sent to ${recipient.slice(0, 8)}...${recipient.slice(-6)}: ${result.digest}`
+          : `sAURUM sent to ${recipient.slice(0, 8)}...${recipient.slice(-6)}: ${result.digest}`,
       );
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Withdraw failed.");
@@ -237,7 +227,8 @@ function AurumPage() {
       <section className="mt-6 bg-white rounded-2xl border border-black/5 p-6 space-y-4">
         <h2 className="text-xl font-semibold">Withdraw</h2>
         <p className="text-black/60 text-sm">
-          Withdraw from either token path: redeem AURUM to USDC, or refine sAURUM back to AURUM.
+          Send AURUM or sAURUM directly to any Sui wallet address (Binance, OKX, or any wallet on
+          Sui network).
         </p>
         <div className="flex flex-wrap gap-2">
           <button
@@ -249,7 +240,7 @@ function AurumPage() {
                 : "bg-white text-black border-black/15"
             }`}
           >
-            AURUM to USDC
+            Send AURUM
           </button>
           <button
             type="button"
@@ -260,9 +251,15 @@ function AurumPage() {
                 : "bg-white text-black border-black/15"
             }`}
           >
-            sAURUM to AURUM
+            Send sAURUM
           </button>
         </div>
+        <input
+          value={withdrawRecipient}
+          onChange={(e) => setWithdrawRecipient(e.target.value)}
+          className="w-full rounded-xl border border-black/10 px-4 py-3"
+          placeholder="Recipient Sui address (0x...)"
+        />
         <input
           value={withdrawAmount}
           onChange={(e) => setWithdrawAmount(e.target.value)}
