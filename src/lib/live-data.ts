@@ -85,6 +85,10 @@ export interface UsdcRateSnapshot {
 const RPC_URL = "https://fullnode.testnet.sui.io:443";
 const VITE_ENV =
   (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env ?? {};
+const SERVER_ENV: Record<string, string | undefined> | undefined =
+  typeof window === "undefined"
+    ? ((globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env ?? {})
+    : undefined;
 const MAGMOS_PACKAGE_ID =
   VITE_ENV.VITE_MAGMOS_PACKAGE_ID ??
   "0xe12b3253116bc30fc1f039edcf6bb6ff6f2e93b6a03852e4a021c86b8304194e";
@@ -128,7 +132,7 @@ async function rpc<T>(method: string, params: unknown[]): Promise<T> {
 }
 
 export async function fetchUsdcRateSnapshot(): Promise<UsdcRateSnapshot> {
-  const circleApiKey = VITE_ENV.VITE_CIRCLE_API_KEY;
+  const circleApiKey = SERVER_ENV?.CIRCLE_API_KEY;
   if (circleApiKey) {
     const idempotencyKey =
       typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -248,7 +252,6 @@ export async function fetchDashboard(): Promise<DashboardData> {
       scallopMarketPoolsUrl: VITE_ENV.VITE_SCALLOP_MARKET_POOLS_URL,
       aftermathPoolsUrl: VITE_ENV.VITE_AFTERMATH_POOLS_URL,
       aftermathPoolStatsUrl: VITE_ENV.VITE_AFTERMATH_POOL_STATS_URL,
-      aftermathBearerToken: VITE_ENV.VITE_AFTERMATH_BEARER_TOKEN,
       deepbookSummaryUrl: VITE_ENV.VITE_DEEPBOOK_SUMMARY_URL,
     },
   );
