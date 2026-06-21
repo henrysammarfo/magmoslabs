@@ -43,6 +43,9 @@ const USDC_TYPE =
 const AURUM_TYPE =
   VITE_ENV.VITE_AURUM_COIN_TYPE ??
   `${VITE_ENV.VITE_MAGMOS_PACKAGE_ID ?? "0xe12b3253116bc30fc1f039edcf6bb6ff6f2e93b6a03852e4a021c86b8304194e"}::aurum::AURUM`;
+const SAURUM_TYPE =
+  VITE_ENV.VITE_SAURUM_COIN_TYPE ??
+  `${VITE_ENV.VITE_MAGMOS_PACKAGE_ID ?? "0xe12b3253116bc30fc1f039edcf6bb6ff6f2e93b6a03852e4a021c86b8304194e"}::saurum::SAURUM`;
 const MAGMOS_PACKAGE_ID =
   VITE_ENV.VITE_MAGMOS_PACKAGE_ID ??
   "0xe12b3253116bc30fc1f039edcf6bb6ff6f2e93b6a03852e4a021c86b8304194e";
@@ -66,6 +69,8 @@ function AurumPage() {
   const { mutateAsync: signAndExecuteTransaction, isPending } = useSignAndExecuteTransaction();
   const [forgeAmount, setForgeAmount] = useState("10");
   const [smeltAmount, setSmeltAmount] = useState("1");
+  const [withdrawAmount, setWithdrawAmount] = useState("1");
+  const [withdrawMode, setWithdrawMode] = useState<"aurum" | "saurum">("aurum");
   const [status, setStatus] = useState<string>("");
   const rate = data?.usdcUsd ?? 1;
   const source = data?.source ?? "coinbase";
@@ -81,7 +86,11 @@ function AurumPage() {
     if (!account?.address) throw new Error("Connect wallet first.");
     const { data: coins } = await client.getCoins({ owner: account.address, coinType });
     const coin = coins.find((c) => BigInt(c.balance) >= needed);
-    if (!coin) throw new Error(`Insufficient ${coinType.includes("usdc") ? "USDC" : "AURUM"} balance.`);
+    if (!coin) {
+      if (coinType.includes("usdc")) throw new Error("Insufficient USDC balance.");
+      if (coinType.includes("saurum")) throw new Error("Insufficient sAURUM balance.");
+      throw new Error("Insufficient AURUM balance.");
+    }
     return coin;
   };
 
@@ -122,6 +131,43 @@ function AurumPage() {
       setStatus(`Smelt submitted: ${result.digest}`);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Smelt failed.");
+    }
+  };
+
+  const runWithdraw = async () => {
+    try {
+      const amount = parseAmountToMicro(withdrawAmount);
+      const tx = new Transaction();
+      if (withdrawMode === "aurum") {
+        setStatus("Preparing AURUM withdrawal...");
+        const coin = await getCoinWithBalance(AURUM_TYPE, amount);
+        const aurum = tx.splitCoins(tx.object(coin.coinObjectId), [tx.pure.u64(amount)]);
+        const usdc = tx.moveCall({
+          target: `${MAGMOS_PACKAGE_ID}::aurum::melt`,
+          typeArguments: [USDC_TYPE],
+          arguments: [tx.object(TREASURY_ID), aurum],
+        });
+        tx.transferObjects([usdc], account!.address);
+      } else {
+        setStatus("Preparing sAURUM withdrawal...");
+        const coin = await getCoinWithBalance(SAURUM_TYPE, amount);
+        const saurum = tx.splitCoins(tx.object(coin.coinObjectId), [tx.pure.u64(amount)]);
+        const aurum = tx.moveCall({
+          target: `${MAGMOS_PACKAGE_ID}::saurum::refine`,
+          typeArguments: [USDC_TYPE],
+          arguments: [tx.object(VAULT_ID), tx.object(TREASURY_ID), saurum],
+        });
+        tx.transferObjects([aurum], account!.address);
+      }
+
+      const result = await signAndExecuteTransaction({ transaction: tx });
+      setStatus(
+        withdrawMode === "aurum"
+          ? `Withdraw (AURUM -> USDC) submitted: ${result.digest}`
+          : `Withdraw (sAURUM -> AURUM) submitted: ${result.digest}`,
+      );
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Withdraw failed.");
     }
   };
 
@@ -187,6 +233,51 @@ function AurumPage() {
             {isPending ? "Submitting..." : "Smelt"}
           </button>
         </div>
+      </section>
+      <section className="mt-6 bg-white rounded-2xl border border-black/5 p-6 space-y-4">
+        <h2 className="text-xl font-semibold">Withdraw</h2>
+        <p className="text-black/60 text-sm">
+          Withdraw from either token path: redeem AURUM to USDC, or refine sAURUM back to AURUM.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setWithdrawMode("aurum")}
+            className={`rounded-full px-4 py-2 border ${
+              withdrawMode === "aurum"
+                ? "bg-black text-white border-black"
+                : "bg-white text-black border-black/15"
+            }`}
+          >
+            AURUM to USDC
+          </button>
+          <button
+            type="button"
+            onClick={() => setWithdrawMode("saurum")}
+            className={`rounded-full px-4 py-2 border ${
+              withdrawMode === "saurum"
+                ? "bg-black text-white border-black"
+                : "bg-white text-black border-black/15"
+            }`}
+          >
+            sAURUM to AURUM
+          </button>
+        </div>
+        <input
+          value={withdrawAmount}
+          onChange={(e) => setWithdrawAmount(e.target.value)}
+          inputMode="decimal"
+          className="w-full max-w-md rounded-xl border border-black/10 px-4 py-3"
+          placeholder={withdrawMode === "aurum" ? "AURUM amount" : "sAURUM amount"}
+        />
+        <button
+          type="button"
+          onClick={runWithdraw}
+          disabled={actionDisabled}
+          className="rounded-full bg-black text-white px-8 py-3 disabled:opacity-50"
+        >
+          {isPending ? "Submitting..." : "Withdraw"}
+        </button>
       </section>
       <section className="mt-4 bg-white rounded-2xl border border-black/5 p-6">
         {isConnected ? (
