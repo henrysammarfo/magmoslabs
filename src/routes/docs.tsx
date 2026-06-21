@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useLocation, useRouter } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { ArrowUpRight } from "lucide-react";
 import { PageShell } from "../components/landing/PageShell";
@@ -68,6 +68,9 @@ function DocsError({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 function DocsPage() {
+  const location = useLocation();
+  if (location.pathname !== "/docs") return <Outlet />;
+
   const { data: sections } = useSuspenseQuery(docsQuery);
   return (
     <PageShell
