@@ -5,6 +5,7 @@ import { LogoIcon } from "./LogoIcon";
 import { OpenWalletButton } from "../wallet/OpenWalletButton";
 
 const links: { label: string; to: string }[] = [
+  { label: "Dashboard", to: "/dashboard" },
   { label: "Protocol", to: "/protocol" },
   { label: "AURUM", to: "/aurum" },
   { label: "sAURUM", to: "/saurum" },
