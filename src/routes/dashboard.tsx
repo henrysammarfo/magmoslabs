@@ -244,7 +244,7 @@ function DashboardWidgets() {
                 className="text-3xl font-medium text-black tabular-nums"
                 style={{ letterSpacing: "-0.03em" }}
               >
-                +${data.earnings[data.earnings.length - 1].value}
+                +${data.earnings[data.earnings.length - 1].value.toFixed(3)}
               </span>
               <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-[#C8A04A]/15 text-[#8B6A22] font-medium">
                 <TrendingUp className="w-3 h-3" /> +18.4%

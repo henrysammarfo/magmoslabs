@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import {
@@ -166,6 +166,21 @@ function SaurumPage() {
           </div>
         )}
         {status ? <p className="text-sm text-black">{status}</p> : null}
+      </section>
+      <section className="bg-white rounded-2xl border border-black/5 p-6 mt-6">
+        <h2 className="text-2xl font-medium text-black" style={{ letterSpacing: "-0.03em" }}>
+          Redeem to USDC
+        </h2>
+        <p className="text-black/60 text-sm mt-2">
+          To redeem directly to USDC with your connected wallet, use the withdraw section on AURUM.
+        </p>
+        <Link
+          to="/aurum"
+          hash="withdraw"
+          className="inline-flex mt-4 rounded-full bg-black text-white px-6 py-3 font-medium"
+        >
+          Go to Withdraw
+        </Link>
       </section>
     </PageShell>
   );
