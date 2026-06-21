@@ -8,14 +8,27 @@ interface DeepbookSummaryRow {
   price_change_percent_24h?: number | string;
 }
 
-const DEFAULT_DEEPBOOK_SUMMARY_URL = "https://deepbook-indexer.mainnet.mystenlabs.com/summary";
+const DEFAULT_DEEPBOOK_SUMMARY_URL = "https://deepbook-indexer.testnet.mystenlabs.com/summary";
 const FALLBACK_APR_BPS = 800;
 
+function normalizeDeepbookSummaryUrl(url: string): string {
+  return url.replace(
+    "deepbook-indexer.mainnet.mystenlabs.com",
+    "deepbook-indexer.testnet.mystenlabs.com",
+  );
+}
+
 export class DeepbookAdapter implements YieldAdapter {
+  private readonly summaryUrl: string;
+  private readonly pair: string;
+
   constructor(
-    private readonly summaryUrl = DEFAULT_DEEPBOOK_SUMMARY_URL,
-    private readonly pair = "SUI_USDC",
-  ) {}
+    summaryUrl = DEFAULT_DEEPBOOK_SUMMARY_URL,
+    pair = "SUI_USDC",
+  ) {
+    this.summaryUrl = normalizeDeepbookSummaryUrl(summaryUrl);
+    this.pair = pair;
+  }
 
   async fetchQuote(): Promise<YieldQuote> {
     try {

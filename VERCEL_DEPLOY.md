@@ -23,7 +23,7 @@ Set these in **Project Settings -> Environment Variables**:
 - `VITE_AFTERMATH_POOLS_URL`
 - `VITE_AFTERMATH_POOL_STATS_URL`
 - `VITE_AFTERMATH_BEARER_TOKEN` (optional, if you have one)
-- `VITE_DEEPBOOK_SUMMARY_URL`
+- `VITE_DEEPBOOK_SUMMARY_URL` (use `https://deepbook-indexer.testnet.mystenlabs.com/summary` on testnet)
 
 Copy values from your local `.env`.
 

@@ -135,7 +135,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <SuiClientProvider networks={networkConfig} defaultNetwork="testnet">
-        <WalletProvider autoConnect={false} storage={null}>
+        <WalletProvider autoConnect>
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
         </WalletProvider>
