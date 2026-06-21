@@ -245,17 +245,18 @@ export async function fetchDashboard(): Promise<DashboardData> {
       deepbookBps: snapshot.deepbookBps,
     },
     {
-      scallopMarketPoolsUrl: import.meta.env.VITE_SCALLOP_MARKET_POOLS_URL as string | undefined,
-      aftermathPoolsUrl: import.meta.env.VITE_AFTERMATH_POOLS_URL as string | undefined,
-      aftermathPoolStatsUrl: import.meta.env.VITE_AFTERMATH_POOL_STATS_URL as string | undefined,
-      aftermathBearerToken: import.meta.env.VITE_AFTERMATH_BEARER_TOKEN as string | undefined,
-      deepbookSummaryUrl: import.meta.env.VITE_DEEPBOOK_SUMMARY_URL as string | undefined,
+      scallopMarketPoolsUrl: VITE_ENV.VITE_SCALLOP_MARKET_POOLS_URL,
+      aftermathPoolsUrl: VITE_ENV.VITE_AFTERMATH_POOLS_URL,
+      aftermathPoolStatsUrl: VITE_ENV.VITE_AFTERMATH_POOL_STATS_URL,
+      aftermathBearerToken: VITE_ENV.VITE_AFTERMATH_BEARER_TOKEN,
+      deepbookSummaryUrl: VITE_ENV.VITE_DEEPBOOK_SUMMARY_URL,
     },
   );
   const quoteMap = new Map(blended.quotes.map((q) => [q.source, q]));
 
   const totalBacking = snapshot.reserves;
-  const weekEarn = snapshot.accruedProtocolFees * 0.9;
+  const estimatedWeeklyYield = (snapshot.reserves * (blended.blendedAprBps / 10_000)) / 52;
+  const weekEarn = Math.max(snapshot.accruedProtocolFees * 0.9, estimatedWeeklyYield);
   const allocations = [
     { venue: "Scallop", strategy: "USDC lending", bps: snapshot.scallopBps },
     { venue: "Aftermath", strategy: "Stable LP", bps: snapshot.aftermathBps },
@@ -273,7 +274,7 @@ export async function fetchDashboard(): Promise<DashboardData> {
   const earnings = Array.from({ length: 12 }, (_, i) => {
     const w = i + 1;
     const factor = w / 12;
-    return { day: `W${w}`, value: Number((weekEarn * factor).toFixed(2)) };
+    return { day: `W${w}`, value: weekEarn * factor };
   });
 
   return {
@@ -358,8 +359,55 @@ function tokenByKind(kind: TxKind): string {
 }
 
 async function fetchAllTransactions(): Promise<Transaction[]> {
-  const result = await rpc<{
-    data: Array<{
+  const fetchByMoveCall = async (
+    module: "aurum" | "saurum" | "automation",
+    func: string,
+    kindHint: TxKind,
+    cap = 25,
+  ) =>
+    await rpc<{
+      data: Array<{
+        digest: string;
+        timestampMs?: string;
+        effects?: { status?: { status?: "success" | "failure" } };
+        transaction?: {
+          data?: {
+            transaction?: {
+              transactions?: Array<{ MoveCall?: { function?: string } }>;
+            };
+          };
+        };
+      }>;
+    }>("suix_queryTransactionBlocks", [
+      {
+        filter: { MoveFunction: { package: MAGMOS_PACKAGE_ID, module, function: func } },
+        options: { showInput: true, showEffects: true },
+      },
+      null,
+      cap,
+      true,
+    ]);
+
+  const bucketSpecs = [
+    { module: "aurum" as const, func: "forge", kindHint: "Mint" as TxKind },
+    { module: "saurum" as const, func: "smelt", kindHint: "Stake" as TxKind },
+    { module: "saurum" as const, func: "refine", kindHint: "Refine" as TxKind },
+    {
+      module: "automation" as const,
+      func: "verify_and_rebalance",
+      kindHint: "Rebalance" as TxKind,
+    },
+  ];
+  const buckets = await Promise.all(
+    bucketSpecs.map(async (spec) => ({
+      kindHint: spec.kindHint,
+      data: (await fetchByMoveCall(spec.module, spec.func, spec.kindHint)).data,
+    })),
+  );
+  const deduped = new Map<
+    string,
+    {
+      kindHint: TxKind;
       digest: string;
       timestampMs?: string;
       effects?: { status?: { status?: "success" | "failure" } };
@@ -370,17 +418,19 @@ async function fetchAllTransactions(): Promise<Transaction[]> {
           };
         };
       };
-    }>;
-  }>("suix_queryTransactionBlocks", [
-    { filter: { ChangedObject: TREASURY_ID }, options: { showInput: true, showEffects: true } },
-    null,
-    100,
-    true,
-  ]);
-
-  return result.data.map((r, i) => {
+    }
+  >();
+  for (const bucket of buckets) {
+    for (const tx of bucket.data) {
+      if (!deduped.has(tx.digest)) deduped.set(tx.digest, { ...tx, kindHint: bucket.kindHint });
+    }
+  }
+  const rows = Array.from(deduped.values()).sort(
+    (a, b) => Number(b.timestampMs ?? 0) - Number(a.timestampMs ?? 0),
+  );
+  return rows.map((r, i) => {
     const fn = r.transaction?.data?.transaction?.transactions?.[0]?.MoveCall?.function;
-    const kind = kindFromFunction(fn);
+    const kind = fn ? kindFromFunction(fn) : r.kindHint;
     const status: TxStatus = r.effects?.status?.status === "failure" ? "Failed" : "Confirmed";
     return {
       id: `tx-${i + 1}`,
