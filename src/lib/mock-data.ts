@@ -1,6 +1,6 @@
 // Live Sui data loaders for dashboard/docs routes.
 // The file name is retained to avoid churn while replacing the previous mock implementation.
-import { fetchBlendedYieldSnapshot } from "@/protocols";
+import { fetchBlendedYieldSnapshot } from "@/protocols/index";
 
 export interface Balance {
   label: string;
