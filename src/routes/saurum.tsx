@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import {
   ConnectButton,
@@ -8,6 +9,7 @@ import {
 } from "@mysten/dapp-kit";
 import { Transaction } from "@mysten/sui/transactions";
 import { PageShell } from "../components/landing/PageShell";
+import { fetchSaurumLiveStats } from "../lib/live-data";
 
 export const Route = createFileRoute("/saurum")({
   head: () => ({
@@ -26,12 +28,12 @@ export const Route = createFileRoute("/saurum")({
   component: SaurumPage,
 });
 
-const stats = [
-  { k: "Current index", v: "1.1247" },
-  { k: "30d APY", v: "12.4%" },
-  { k: "TVL staked", v: "$18.6M" },
-  { k: "Holders", v: "4,212" },
-];
+const saurumStatsQuery = queryOptions({
+  queryKey: ["saurum-live-stats"],
+  queryFn: fetchSaurumLiveStats,
+  staleTime: 15_000,
+  refetchInterval: 30_000,
+});
 
 const VITE_ENV =
   (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env ?? {};
@@ -63,12 +65,25 @@ function SaurumPage() {
   const { mutateAsync: signAndExecuteTransaction, isPending } = useSignAndExecuteTransaction();
   const [refineAmount, setRefineAmount] = useState("1");
   const [status, setStatus] = useState<string>("");
+  const { data: live } = useQuery(saurumStatsQuery);
   const isConnected = Boolean(account?.address);
   const actionDisabled = !isConnected || isPending;
   const accountShort = useMemo(
     () => (account?.address ? `${account.address.slice(0, 8)}...${account.address.slice(-6)}` : ""),
     [account?.address],
   );
+
+  const stats = [
+    { k: "Current index", v: live ? live.currentIndex.toFixed(4) : "..." },
+    { k: "Live APY", v: live ? `${live.apyPct.toFixed(2)}%` : "..." },
+    {
+      k: "TVL staked",
+      v: live
+        ? `$${live.tvlStakedUsd.toLocaleString("en-US", { maximumFractionDigits: 2 })}`
+        : "...",
+    },
+    { k: "Active holders", v: live ? live.holders.toLocaleString("en-US") : "..." },
+  ];
 
   const runRefine = async () => {
     try {

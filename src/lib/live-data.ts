@@ -53,6 +53,14 @@ export interface DashboardData {
   totalBacking: string;
 }
 
+export interface SaurumLiveStats {
+  currentIndex: number;
+  apyPct: number;
+  tvlStakedUsd: number;
+  holders: number;
+  updatedAtMs: number;
+}
+
 export interface TransactionsQuery {
   search?: string;
   kind?: TxKind | "all";
@@ -325,6 +333,64 @@ export async function fetchDashboard(): Promise<DashboardData> {
     earnings,
     reserveRatio: "100.0%",
     totalBacking: money(totalBacking),
+  };
+}
+
+async function fetchSaurumHolderCount(cap = 120): Promise<number> {
+  const fetchSaurumEventRows = async (func: "smelt" | "refine") =>
+    await rpc<{
+      data?: Array<{
+        events?: Array<{ parsedJson?: { staker?: string } }>;
+      }>;
+    }>("suix_queryTransactionBlocks", [
+      {
+        filter: { MoveFunction: { package: MAGMOS_PACKAGE_ID, module: "saurum", function: func } },
+        options: { showEvents: true },
+      },
+      null,
+      cap,
+      true,
+    ]);
+
+  const [smelts, refines] = await Promise.all([
+    fetchSaurumEventRows("smelt"),
+    fetchSaurumEventRows("refine"),
+  ]);
+  const holders = new Set<string>();
+  for (const row of [...(smelts.data ?? []), ...(refines.data ?? [])]) {
+    for (const event of row.events ?? []) {
+      const staker = event.parsedJson?.staker;
+      if (staker) holders.add(staker);
+    }
+  }
+  return holders.size;
+}
+
+export async function fetchSaurumLiveStats(): Promise<SaurumLiveStats> {
+  const snapshot = await fetchProtocolSnapshot();
+  const [blended, holders] = await Promise.all([
+    fetchBlendedYieldSnapshot(
+      {
+        scallopBps: snapshot.scallopBps,
+        aftermathBps: snapshot.aftermathBps,
+        deepbookBps: snapshot.deepbookBps,
+      },
+      {
+        scallopMarketPoolsUrl: VITE_ENV.VITE_SCALLOP_MARKET_POOLS_URL,
+        aftermathPoolsUrl: VITE_ENV.VITE_AFTERMATH_POOLS_URL,
+        aftermathPoolStatsUrl: VITE_ENV.VITE_AFTERMATH_POOL_STATS_URL,
+        deepbookSummaryUrl: VITE_ENV.VITE_DEEPBOOK_SUMMARY_URL,
+      },
+    ),
+    fetchSaurumHolderCount(),
+  ]);
+
+  return {
+    currentIndex: snapshot.accumulationIndex,
+    apyPct: blended.blendedAprBps / 100,
+    tvlStakedUsd: snapshot.totalAurumStaked,
+    holders,
+    updatedAtMs: Date.now(),
   };
 }
 
