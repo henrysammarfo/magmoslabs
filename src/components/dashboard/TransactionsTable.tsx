@@ -11,16 +11,19 @@ import {
   ArrowUpRight,
   ArrowDownLeft,
 } from "lucide-react";
-import {
-  fetchTransactions,
-  formatTxTime,
-  type TxKind,
-  type TxStatus,
-} from "../../lib/mock-data";
+import { fetchTransactions, formatTxTime, type TxKind, type TxStatus } from "../../lib/mock-data";
 import { Skeleton } from "../landing/Skeleton";
 import { ErrorState } from "../landing/ErrorState";
 
-const KINDS: (TxKind | "all")[] = ["all", "Mint", "Stake", "Unstake", "Rebalance", "Refine", "Withdraw"];
+const KINDS: (TxKind | "all")[] = [
+  "all",
+  "Mint",
+  "Stake",
+  "Unstake",
+  "Rebalance",
+  "Refine",
+  "Withdraw",
+];
 const STATUSES: (TxStatus | "all")[] = ["all", "Confirmed", "Pending", "Failed"];
 
 const statusStyles: Record<TxStatus, { dot: string; pill: string; Icon: typeof CheckCircle2 }> = {
@@ -48,7 +51,14 @@ export function TransactionsTable() {
 
   const query = useQuery({
     queryKey: ["transactions", { search: debounced, kind, status, page, pageSize }],
-    queryFn: () => fetchTransactions({ search: debounced, kind, status, page, pageSize }),
+    queryFn: () =>
+      fetchTransactions({ search: debounced, kind, status, page, pageSize }).catch(() => ({
+        rows: [],
+        total: 0,
+        page: 1,
+        pageSize,
+        totalPages: 1,
+      })),
     placeholderData: keepPreviousData,
     staleTime: 15_000,
   });
@@ -65,13 +75,14 @@ export function TransactionsTable() {
   }, [data]);
 
   return (
-    <section
-      aria-labelledby="tx-title"
-      className="magmos-card rounded-3xl p-6 sm:p-8"
-    >
+    <section aria-labelledby="tx-title" className="magmos-card rounded-3xl p-6 sm:p-8">
       <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
         <div>
-          <h2 id="tx-title" className="text-2xl font-medium text-black" style={{ letterSpacing: "-0.03em" }}>
+          <h2
+            id="tx-title"
+            className="text-2xl font-medium text-black"
+            style={{ letterSpacing: "-0.03em" }}
+          >
             Transactions
           </h2>
           <p className="text-sm text-black/50 mt-1">
@@ -101,7 +112,9 @@ export function TransactionsTable() {
             className="text-sm px-3 py-2 rounded-full bg-[#F5F5F5] border border-transparent focus:border-black focus:outline-none text-black"
           >
             {KINDS.map((k) => (
-              <option key={k} value={k}>{k === "all" ? "All types" : k}</option>
+              <option key={k} value={k}>
+                {k === "all" ? "All types" : k}
+              </option>
             ))}
           </select>
           <select
@@ -111,7 +124,9 @@ export function TransactionsTable() {
             className="text-sm px-3 py-2 rounded-full bg-[#F5F5F5] border border-transparent focus:border-black focus:outline-none text-black"
           >
             {STATUSES.map((s) => (
-              <option key={s} value={s}>{s === "all" ? "All statuses" : s}</option>
+              <option key={s} value={s}>
+                {s === "all" ? "All statuses" : s}
+              </option>
             ))}
           </select>
         </div>
@@ -174,12 +189,16 @@ export function TransactionsTable() {
                         <code className="text-xs text-black/55 font-mono">{t.hash}</code>
                       </td>
                       <td className="px-2 py-4 hidden sm:table-cell">
-                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${s.pill}`}>
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${s.pill}`}
+                        >
                           <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
                           {t.status}
                         </span>
                       </td>
-                      <td className="px-2 py-4 text-right font-medium text-black tabular-nums">{t.amount}</td>
+                      <td className="px-2 py-4 text-right font-medium text-black tabular-nums">
+                        {t.amount}
+                      </td>
                       <td className="px-2 py-4 text-right text-black/50 tabular-nums hidden md:table-cell">
                         {formatTxTime(t.timestamp)}
                       </td>
@@ -191,7 +210,9 @@ export function TransactionsTable() {
           </div>
 
           <div className="flex items-center justify-between mt-6">
-            <p className="text-xs text-black/50">Page {data!.page} of {data!.totalPages}</p>
+            <p className="text-xs text-black/50">
+              Page {data!.page} of {data!.totalPages}
+            </p>
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -230,7 +251,7 @@ function TableSkeleton() {
       {Array.from({ length: 6 }).map((_, r) => (
         <div key={r} className="grid grid-cols-6 gap-3 px-2 py-4 items-center">
           {Array.from({ length: 6 }).map((_, c) => (
-            <Skeleton key={c} className="h-4" style={{ width: `${60 + (c * 7) % 35}%` }} />
+            <Skeleton key={c} className="h-4" style={{ width: `${60 + ((c * 7) % 35)}%` }} />
           ))}
         </div>
       ))}

@@ -14,7 +14,23 @@ dist-ssr
 .vinxi
 .tanstack/**
 .nitro
+.vercel
 *.local
+.env
+.env.*
+!.env.example
+!.env.frontend.example
+!.env.operator.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa
+id_rsa.pub
+secrets.json
+credentials.json
 
 # Wrangler / Cloudflare
 .wrangler/
