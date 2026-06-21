@@ -380,37 +380,37 @@ export async function fetchDocs(): Promise<DocSection[]> {
       slug: "quickstart",
       tag: "Start here",
       title: "Quickstart",
-      body: "Open JUDGE_QUICKSTART.md for the exact live on-chain demo flow and command order.",
+      body: "Connect a Sui testnet wallet, mint AURUM from USDC, then smelt to sAURUM and refine back to validate the full lifecycle. Verify reserves and allocation state from on-chain reads, and confirm every UI state transition maps to completed Sui transactions.",
     },
     {
       slug: "sdk",
       tag: "Contracts",
       title: "Move package",
-      body: "Core modules live under contracts/sources with tests in contracts/tests.",
+      body: "Magmos Move modules cover minting, staking index accounting, allocation controls, and automation hooks. Core safety guarantees are enforced with typed capabilities, explicit abort paths, and deterministic arithmetic checks that preserve backing and concentration invariants.",
     },
     {
       slug: "indexer",
       tag: "Deploy",
       title: "Deployment ledger",
-      body: "See memory/09_DEPLOYMENT.md for package id, shared object ids, and capability objects.",
+      body: "The deployment ledger tracks package IDs, shared object IDs, and authority objects required by frontend and operator services. Runtime reads and writes are keyed against these canonical IDs so the app and infra always target the same live protocol instance.",
     },
     {
       slug: "audits",
       tag: "Security",
       title: "Operational checks",
-      body: "Use /healthz, /health/dependencies, and /metrics from the operator for live safety signals.",
+      body: "Operational safety combines thermal limits, signature checks, nonce monotonicity, and dependency health gates. Monitor service health, dependency reachability, and rebalance execution telemetry continuously to detect drift before it impacts user flows.",
     },
     {
       slug: "brand",
       tag: "Submission",
       title: "Submission pack",
-      body: "SUBMISSION_PACK.md and SUBMISSION_FIELDS.md contain the hackathon-ready narrative and answers.",
+      body: "The submission narrative explains product thesis, protocol mechanics, and measurable user value with production context. Keep this section aligned with live endpoints, current contract IDs, and demonstrated wallet flows used in judging.",
     },
     {
       slug: "changelog",
       tag: "Releases",
       title: "Changelog",
-      body: `Current live package: ${MAGMOS_PACKAGE_ID}`,
+      body: `Current live package is ${MAGMOS_PACKAGE_ID}. Recent releases hardened live data rendering, fixed docs route navigation, introduced dedicated docs-site Mintlify isolation, and removed placeholder reserve content from the user-facing experience.`,
     },
   ];
 }
