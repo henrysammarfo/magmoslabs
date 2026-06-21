@@ -32,7 +32,7 @@ const statusStyles: Record<TxStatus, { dot: string; pill: string; Icon: typeof C
   Failed: { dot: "bg-red-500", pill: "bg-red-50 text-red-700", Icon: XCircle },
 };
 
-export function TransactionsTable() {
+export function TransactionsTable({ owner }: { owner?: string }) {
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
   const [kind, setKind] = useState<TxKind | "all">("all");
@@ -50,10 +50,11 @@ export function TransactionsTable() {
   }, [debounced, kind, status]);
 
   const query = useQuery({
-    queryKey: ["transactions", { search: debounced, kind, status, page, pageSize }],
-    queryFn: () => fetchTransactions({ search: debounced, kind, status, page, pageSize }),
+    queryKey: ["transactions", { owner, search: debounced, kind, status, page, pageSize }],
+    queryFn: () => fetchTransactions({ owner, search: debounced, kind, status, page, pageSize }),
     placeholderData: keepPreviousData,
     staleTime: 15_000,
+    enabled: Boolean(owner),
   });
 
   const data = query.data;
@@ -125,7 +126,18 @@ export function TransactionsTable() {
         </div>
       </div>
 
-      {query.isError ? (
+      {!owner ? (
+        <EmptyState
+          hasFilters={false}
+          onClear={() => {
+            setSearch("");
+            setKind("all");
+            setStatus("all");
+          }}
+          title="Connect wallet to view your history."
+          message="This ledger view is wallet-bound and shows only the connected wallet activity."
+        />
+      ) : query.isError ? (
         <ErrorState
           compact
           title="Couldn't load transactions."
@@ -252,19 +264,30 @@ function TableSkeleton() {
   );
 }
 
-function EmptyState({ hasFilters, onClear }: { hasFilters: boolean; onClear: () => void }) {
+function EmptyState({
+  hasFilters,
+  onClear,
+  title,
+  message,
+}: {
+  hasFilters: boolean;
+  onClear: () => void;
+  title?: string;
+  message?: string;
+}) {
   return (
     <div className="text-center py-14 px-6">
       <span className="inline-flex rounded-full bg-black/[0.04] border border-black/5 p-4 mb-4">
         <Inbox className="w-6 h-6 text-black/60" />
       </span>
       <h3 className="text-lg font-medium text-black mb-1" style={{ letterSpacing: "-0.02em" }}>
-        {hasFilters ? "No transactions match those filters." : "No transactions yet."}
+        {title ?? (hasFilters ? "No transactions match those filters." : "No transactions yet.")}
       </h3>
       <p className="text-black/55 max-w-sm mx-auto mb-5">
-        {hasFilters
-          ? "Try widening the date range or clearing filters to see more activity."
-          : "Mint AURUM or stake to sAURUM to start your on-chain history."}
+        {message ??
+          (hasFilters
+            ? "Try widening the date range or clearing filters to see more activity."
+            : "Mint AURUM or stake to sAURUM to start your on-chain history.")}
       </p>
       {hasFilters && (
         <button

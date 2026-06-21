@@ -21,8 +21,8 @@ import { fetchDashboard, type Balance } from "../lib/live-data";
 import { loadProfile } from "../lib/profile";
 
 const dashboardQuery = queryOptions({
-  queryKey: ["dashboard"],
-  queryFn: fetchDashboard,
+  queryKey: ["dashboard", { owner: "" }],
+  queryFn: () => fetchDashboard(),
   staleTime: 30_000,
 });
 
@@ -188,7 +188,13 @@ function DashboardPage() {
 }
 
 function DashboardWidgets() {
-  const { data, isPending, isError, error, refetch } = useQuery(dashboardQuery);
+  const account = useCurrentAccount();
+  const owner = account?.address ?? "";
+  const { data, isPending, isError, error, refetch } = useQuery({
+    ...dashboardQuery,
+    queryKey: ["dashboard", { owner }],
+    queryFn: () => fetchDashboard(owner || undefined),
+  });
   if (isError) {
     return (
       <ErrorState
@@ -330,7 +336,7 @@ function DashboardWidgets() {
       </section>
 
       <div className="mt-10">
-        <TransactionsTable />
+        <TransactionsTable owner={owner || undefined} />
       </div>
 
       <section

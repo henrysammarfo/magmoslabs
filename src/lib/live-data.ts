@@ -74,6 +74,7 @@ export interface TransactionsQuery {
   status?: TxStatus | "all";
   page?: number;
   pageSize?: number;
+  owner?: string;
 }
 
 export interface TransactionsPage {
@@ -254,9 +255,19 @@ export async function fetchProtocolSnapshot(): Promise<ProtocolSnapshot> {
   };
 }
 
-export async function fetchDashboard(): Promise<DashboardData> {
+function parseDisplayedAmount(v: string): number {
+  const n = Number(v.replace(/,/g, ""));
+  return Number.isFinite(n) ? n : 0;
+}
+
+function normalizeAddress(addr?: string): string | null {
+  if (!addr) return null;
+  return addr.trim().toLowerCase();
+}
+
+export async function fetchDashboard(owner?: string): Promise<DashboardData> {
   const snapshot = await fetchProtocolSnapshot();
-  const txPage = await fetchTransactions({ page: 1, pageSize: 12 });
+  const txPage = await fetchTransactions({ page: 1, pageSize: 12, owner });
   const blended = await fetchBlendedYieldSnapshot(
     {
       scallopBps: snapshot.scallopBps,
@@ -289,11 +300,20 @@ export async function fetchDashboard(): Promise<DashboardData> {
     in: t.numeric >= 0,
   }));
 
-  const earnings = Array.from({ length: 12 }, (_, i) => {
-    const w = i + 1;
-    const factor = w / 12;
-    return { day: `W${w}`, value: weekEarn * factor };
-  });
+  const earnings = owner
+    ? Array.from({ length: 12 }, (_, i) => {
+        const relevant = txPage.rows.slice(0, i + 1);
+        const cumulative = relevant.reduce(
+          (sum, tx) => sum + tx.numeric * parseDisplayedAmount(tx.amount),
+          0,
+        );
+        return { day: `T${i + 1}`, value: cumulative };
+      })
+    : Array.from({ length: 12 }, (_, i) => {
+        const w = i + 1;
+        const factor = w / 12;
+        return { day: `W${w}`, value: weekEarn * factor };
+      });
 
   return {
     balances: [
@@ -474,7 +494,7 @@ function txAmountFromEvent(kind: TxKind, eventParsed: Record<string, unknown> | 
   return "-";
 }
 
-async function fetchAllTransactions(): Promise<Transaction[]> {
+async function fetchAllTransactions(owner?: string): Promise<Transaction[]> {
   const fetchByMoveCall = async (
     module: "aurum" | "saurum" | "automation",
     func: string,
@@ -488,6 +508,7 @@ async function fetchAllTransactions(): Promise<Transaction[]> {
         effects?: { status?: { status?: "success" | "failure" } };
         transaction?: {
           data?: {
+            sender?: string;
             transaction?: {
               transactions?: Array<{ MoveCall?: { function?: string } }>;
             };
@@ -530,6 +551,7 @@ async function fetchAllTransactions(): Promise<Transaction[]> {
       effects?: { status?: { status?: "success" | "failure" } };
       transaction?: {
         data?: {
+          sender?: string;
           transaction?: {
             transactions?: Array<{ MoveCall?: { function?: string } }>;
           };
@@ -543,9 +565,19 @@ async function fetchAllTransactions(): Promise<Transaction[]> {
       if (!deduped.has(tx.digest)) deduped.set(tx.digest, { ...tx, kindHint: bucket.kindHint });
     }
   }
-  const rows = Array.from(deduped.values()).sort(
+  const ownerNorm = normalizeAddress(owner);
+  const rows = Array.from(deduped.values())
+    .filter((r) => {
+      if (!ownerNorm) return true;
+      const sender = normalizeAddress(r.transaction?.data?.sender);
+      if (sender && sender === ownerNorm) return true;
+      const parsed = r.events?.[0]?.parsedJson;
+      const actorFields = ["minter", "staker", "redeemer", "owner", "user"] as const;
+      return actorFields.some((field) => normalizeAddress(parsed?.[field]) === ownerNorm);
+    })
+    .sort(
     (a, b) => Number(b.timestampMs ?? 0) - Number(a.timestampMs ?? 0),
-  );
+    );
   return rows.map((r, i) => {
     const fn = r.transaction?.data?.transaction?.transactions?.[0]?.MoveCall?.function;
     const kind = fn ? kindFromFunction(fn) : r.kindHint;
@@ -565,7 +597,7 @@ async function fetchAllTransactions(): Promise<Transaction[]> {
 }
 
 export async function fetchTransactions(q: TransactionsQuery = {}): Promise<TransactionsPage> {
-  const allTx = await fetchAllTransactions();
+  const allTx = await fetchAllTransactions(q.owner);
   const { search = "", kind = "all", status = "all", page = 1, pageSize = 8 } = q;
   const needle = search.trim().toLowerCase();
   const filtered = allTx.filter((t) => {
