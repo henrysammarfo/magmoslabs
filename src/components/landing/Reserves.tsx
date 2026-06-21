@@ -1,12 +1,54 @@
 import { ShieldCheck } from "lucide-react";
+import { queryOptions, useQuery } from "@tanstack/react-query";
+import { fetchLandingReservesStats } from "../../lib/live-data";
 
-const stats = [
-  { label: "Total reserves", value: "$24.8M", sub: "100% in Scallop / Aftermath / DeepBook" },
-  { label: "Accumulation index", value: "1.1247", sub: "Updated 4 hours ago" },
-  { label: "30-day APY", value: "12.4%", sub: "Multi-protocol yield, compounded daily" },
-];
+const landingReservesQuery = queryOptions({
+  queryKey: ["landing-reserves-live"],
+  queryFn: fetchLandingReservesStats,
+  staleTime: 10_000,
+  refetchInterval: 30_000,
+});
+
+function formatUsdCompact(v: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(v);
+}
+
+function formatUpdated(ts: number): string {
+  const diff = Date.now() - ts;
+  const mins = Math.max(0, Math.floor(diff / 60000));
+  if (mins < 1) return "Updated just now";
+  if (mins < 60) return `Updated ${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `Updated ${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `Updated ${days}d ago`;
+}
 
 export function Reserves() {
+  const { data, isPending, isError } = useQuery(landingReservesQuery);
+  const stats = [
+    {
+      label: "Total reserves",
+      value: isPending || isError || !data ? "..." : formatUsdCompact(data.totalReservesUsd),
+      sub: "100% in Scallop / Aftermath / DeepBook",
+    },
+    {
+      label: "Accumulation index",
+      value: isPending || isError || !data ? "..." : data.accumulationIndex.toFixed(4),
+      sub: isPending || isError || !data ? "Fetching on-chain..." : formatUpdated(data.updatedAtMs),
+    },
+    {
+      label: "30-day APY",
+      value: isPending || isError || !data ? "..." : `${data.apr30dPct.toFixed(2)}%`,
+      sub: "Multi-protocol yield, compounded daily",
+    },
+  ];
+
   return (
     <section id="reserves" className="px-6 py-28">
       <div className="max-w-[88rem] mx-auto bg-white rounded-2xl border border-black/5 p-10 md:p-16">

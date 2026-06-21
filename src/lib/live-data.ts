@@ -61,6 +61,13 @@ export interface SaurumLiveStats {
   updatedAtMs: number;
 }
 
+export interface LandingReservesStats {
+  totalReservesUsd: number;
+  accumulationIndex: number;
+  apr30dPct: number;
+  updatedAtMs: number;
+}
+
 export interface TransactionsQuery {
   search?: string;
   kind?: TxKind | "all";
@@ -390,6 +397,30 @@ export async function fetchSaurumLiveStats(): Promise<SaurumLiveStats> {
     apyPct: blended.blendedAprBps / 100,
     tvlStakedUsd: snapshot.totalAurumStaked,
     holders,
+    updatedAtMs: Date.now(),
+  };
+}
+
+export async function fetchLandingReservesStats(): Promise<LandingReservesStats> {
+  const snapshot = await fetchProtocolSnapshot();
+  const blended = await fetchBlendedYieldSnapshot(
+    {
+      scallopBps: snapshot.scallopBps,
+      aftermathBps: snapshot.aftermathBps,
+      deepbookBps: snapshot.deepbookBps,
+    },
+    {
+      scallopMarketPoolsUrl: VITE_ENV.VITE_SCALLOP_MARKET_POOLS_URL,
+      aftermathPoolsUrl: VITE_ENV.VITE_AFTERMATH_POOLS_URL,
+      aftermathPoolStatsUrl: VITE_ENV.VITE_AFTERMATH_POOL_STATS_URL,
+      deepbookSummaryUrl: VITE_ENV.VITE_DEEPBOOK_SUMMARY_URL,
+    },
+  );
+
+  return {
+    totalReservesUsd: snapshot.reserves,
+    accumulationIndex: snapshot.accumulationIndex,
+    apr30dPct: blended.blendedAprBps / 100,
     updatedAtMs: Date.now(),
   };
 }
