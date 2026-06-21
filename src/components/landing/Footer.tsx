@@ -1,21 +1,41 @@
+import { Link } from "@tanstack/react-router";
 import { LogoIcon } from "./LogoIcon";
 
 const cols = [
   {
     title: "Protocol",
-    links: ["AURUM", "sAURUM", "Reserves", "Audits"],
+    links: [
+      { label: "AURUM", href: "/aurum" },
+      { label: "sAURUM", href: "/saurum" },
+      { label: "Reserves", href: "/reserves" },
+      { label: "Audits", href: "/protocol" },
+    ],
   },
   {
     title: "Developers",
-    links: ["Docs", "Move SDK", "GitHub", "Integrations"],
+    links: [
+      { label: "Docs", href: "/docs" },
+      { label: "Move SDK", href: "/docs/sdk" },
+      { label: "GitHub", href: "https://github.com/henrysammarfo/magmoslabs", external: true },
+      { label: "Integrations", href: "/protocol" },
+    ],
   },
   {
     title: "Community",
-    links: ["X / Twitter", "Discord", "Mirror", "Brand kit"],
+    links: [
+      { label: "X / Twitter", href: "https://x.com", external: true },
+      { label: "Discord", href: "https://discord.com", external: true },
+      { label: "Mirror", href: "https://mirror.xyz", external: true },
+      { label: "Brand kit", href: "/docs/brand" },
+    ],
   },
   {
     title: "Legal",
-    links: ["Terms", "Privacy", "Disclosures"],
+    links: [
+      { label: "Terms", href: "/docs" },
+      { label: "Privacy", href: "/docs" },
+      { label: "Disclosures", href: "/docs" },
+    ],
   },
 ];
 
@@ -39,13 +59,21 @@ export function Footer() {
               <p className="text-sm font-medium text-black mb-4">{c.title}</p>
               <ul className="space-y-3">
                 {c.links.map((l) => (
-                  <li key={l}>
-                    <a
-                      href="#"
-                      className="text-sm text-black/60 hover:text-black transition-colors"
-                    >
-                      {l}
-                    </a>
+                  <li key={l.label}>
+                    {l.external ? (
+                      <a
+                        href={l.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sm text-black/60 hover:text-black transition-colors"
+                      >
+                        {l.label}
+                      </a>
+                    ) : (
+                      <Link to={l.href} className="text-sm text-black/60 hover:text-black transition-colors">
+                        {l.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
