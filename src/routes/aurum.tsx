@@ -224,7 +224,7 @@ function AurumPage() {
           </button>
         </div>
       </section>
-      <section className="mt-6 bg-white rounded-2xl border border-black/5 p-6 space-y-4">
+      <section id="withdraw" className="mt-6 bg-white rounded-2xl border border-black/5 p-6 space-y-4">
         <h2 className="text-xl font-semibold">Withdraw</h2>
         <p className="text-black/60 text-sm">
           Send AURUM or sAURUM directly to any Sui wallet address (Binance, OKX, or any wallet on

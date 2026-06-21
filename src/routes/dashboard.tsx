@@ -173,6 +173,12 @@ function DashboardPage() {
           >
             Stake to sAURUM
           </Link>
+          <a
+            href="/aurum#withdraw"
+            className="inline-flex items-center px-6 py-3 rounded-full border border-black/15 text-black font-medium hover:bg-black/5 transition-colors"
+          >
+            Withdraw
+          </a>
         </div>
       </header>
 
