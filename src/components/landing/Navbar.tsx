@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { LogoIcon } from "./LogoIcon";
-import { useWaitlistModal } from "./WaitlistModal";
 
 const links: { label: string; to: string }[] = [
   { label: "Protocol", to: "/protocol" },
@@ -14,7 +13,6 @@ const links: { label: string; to: string }[] = [
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { open } = useWaitlistModal();
 
   return (
     <header className="absolute top-0 left-0 right-0 z-20 px-6 py-5">
@@ -40,13 +38,12 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => open("wallet")}
+          <Link
+            to="/aurum"
             className="hidden md:inline-flex bg-black text-white text-base font-medium px-7 py-2.5 rounded-full hover:bg-gray-800 transition-colors"
           >
             Open Wallet
-          </button>
+          </Link>
           <button
             type="button"
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
@@ -71,16 +68,13 @@ export function Navbar() {
               {l.label}
             </Link>
           ))}
-          <button
-            type="button"
-            onClick={() => {
-              setMobileOpen(false);
-              open("wallet");
-            }}
-            className="mt-2 bg-black text-white font-medium px-6 py-3 rounded-full hover:bg-gray-800 transition-colors"
+          <Link
+            to="/aurum"
+            onClick={() => setMobileOpen(false)}
+            className="mt-2 bg-black text-white font-medium px-6 py-3 rounded-full hover:bg-gray-800 transition-colors text-center"
           >
             Open Wallet
-          </button>
+          </Link>
         </div>
       )}
     </header>

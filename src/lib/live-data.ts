@@ -76,6 +76,12 @@ export interface DocSection {
   tag: string;
 }
 
+export interface UsdcRateSnapshot {
+  usdcUsd: number;
+  source: "circle" | "coinbase";
+  fetchedAtMs: number;
+}
+
 const RPC_URL = "https://fullnode.testnet.sui.io:443";
 const VITE_ENV =
   (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env ?? {};
@@ -119,6 +125,49 @@ async function rpc<T>(method: string, params: unknown[]): Promise<T> {
     throw new Error(`RPC ${method} returned no result`);
   }
   return json.result;
+}
+
+export async function fetchUsdcRateSnapshot(): Promise<UsdcRateSnapshot> {
+  const circleApiKey = VITE_ENV.VITE_CIRCLE_API_KEY;
+  if (circleApiKey) {
+    const idempotencyKey =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const res = await fetch("https://api.circle.com/v1/exchange/quotes", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${circleApiKey}`,
+      },
+      body: JSON.stringify({
+        type: "reference",
+        idempotencyKey,
+        from: { currency: "USD", amount: "1" },
+        to: { currency: "USDC" },
+      }),
+    });
+    if (res.ok) {
+      const json = (await res.json()) as {
+        data?: { rate?: number | string; from?: { amount?: number | string } };
+      };
+      const rate = Number(json.data?.rate ?? json.data?.from?.amount ?? 1);
+      if (Number.isFinite(rate) && rate > 0) {
+        return { usdcUsd: rate, source: "circle", fetchedAtMs: Date.now() };
+      }
+    }
+  }
+
+  const fallback = await fetch("https://api.coinbase.com/v2/prices/USDC-USD/spot");
+  if (!fallback.ok) {
+    throw new Error(`USDC rate fetch failed: ${fallback.status}`);
+  }
+  const payload = (await fallback.json()) as { data?: { amount?: string } };
+  const amount = Number(payload.data?.amount ?? "1");
+  if (!Number.isFinite(amount) || amount <= 0) {
+    throw new Error("USDC rate payload invalid");
+  }
+  return { usdcUsd: amount, source: "coinbase", fetchedAtMs: Date.now() };
 }
 
 function toNum(v: unknown): number {
@@ -323,8 +372,7 @@ async function fetchAllTransactions(): Promise<Transaction[]> {
       };
     }>;
   }>("suix_queryTransactionBlocks", [
-    { filter: { ChangedObject: TREASURY_ID } },
-    { showInput: true, showEffects: true },
+    { filter: { ChangedObject: TREASURY_ID }, options: { showInput: true, showEffects: true } },
     null,
     100,
     true,

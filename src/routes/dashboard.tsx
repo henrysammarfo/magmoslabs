@@ -15,7 +15,6 @@ import { ErrorState } from "../components/landing/ErrorState";
 import { EarningsChart } from "../components/dashboard/EarningsChart";
 import { DashboardSkeleton } from "../components/dashboard/DashboardSkeleton";
 import { TransactionsTable } from "../components/dashboard/TransactionsTable";
-import { useWaitlistModal } from "../components/landing/WaitlistModal";
 import { fetchDashboard, type Balance } from "../lib/live-data";
 
 const dashboardQuery = queryOptions({
@@ -122,7 +121,6 @@ function DashboardError({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 function DashboardPage() {
-  const { open } = useWaitlistModal();
   return (
     <DashboardChrome>
       <header className="flex flex-wrap items-end justify-between gap-6 mb-10">
@@ -140,16 +138,15 @@ function DashboardPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={() => open("wallet")}
+          <Link
+            to="/aurum"
             className="inline-flex items-center gap-3 bg-black text-white font-medium pl-6 pr-2 py-2 rounded-full hover:bg-gray-800 transition-colors"
           >
             Mint AURUM
             <span className="bg-white rounded-full p-1.5">
               <ArrowRight className="w-4 h-4 text-black" />
             </span>
-          </button>
+          </Link>
           <Link
             to="/saurum"
             className="inline-flex items-center px-6 py-3 rounded-full border border-black/15 text-black font-medium hover:bg-black/5 transition-colors"

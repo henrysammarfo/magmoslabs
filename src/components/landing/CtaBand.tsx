@@ -1,9 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { useWaitlistModal } from "./WaitlistModal";
 
 export function CtaBand() {
-  const { open } = useWaitlistModal();
   return (
     <section id="launch" className="px-6 py-12" aria-labelledby="cta-title">
       <div className="max-w-[88rem] mx-auto bg-black text-white rounded-2xl p-12 md:p-20 relative overflow-hidden">
@@ -27,16 +25,15 @@ export function CtaBand() {
             compound. No protocol owns your capital.
           </p>
           <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={() => open("wallet")}
+            <Link
+              to="/aurum"
               className="inline-flex items-center gap-3 bg-white text-black text-base md:text-lg font-medium pl-8 pr-2 py-2 rounded-full hover:bg-white/90 transition-colors duration-200"
             >
               Open Wallet
               <span className="bg-black rounded-full p-2">
                 <ArrowRight className="w-5 h-5 text-white" />
               </span>
-            </button>
+            </Link>
             <Link
               to="/docs"
               className="inline-flex items-center px-7 py-3 rounded-full border border-white/20 text-white text-base md:text-lg font-medium hover:bg-white/5 transition-colors duration-200"

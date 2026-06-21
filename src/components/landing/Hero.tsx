@@ -1,9 +1,8 @@
 import { ArrowRight } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { Marquee } from "./Marquee";
-import { useWaitlistModal } from "./WaitlistModal";
 
 export function Hero() {
-  const { open } = useWaitlistModal();
   return (
     <section className="flex-1 px-6 pt-20 pb-6 flex items-end" aria-labelledby="hero-title">
       <div
@@ -34,16 +33,15 @@ export function Hero() {
             accumulation index rise daily — yield from Scallop, DeepBook, and Aftermath,
             compounded on-chain.
           </p>
-          <button
-            type="button"
-            onClick={() => open("join")}
+          <Link
+            to="/aurum"
             className="inline-flex items-center gap-3 bg-black text-white text-base md:text-lg font-medium pl-8 pr-2 py-2 rounded-full hover:bg-gray-800 transition-colors duration-200"
           >
             Join us
             <span className="bg-white rounded-full p-2">
               <ArrowRight className="w-5 h-5 text-black" />
             </span>
-          </button>
+          </Link>
           <Marquee />
         </div>
       </div>

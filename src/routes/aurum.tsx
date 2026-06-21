@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { PageShell } from "../components/landing/PageShell";
+import { fetchUsdcRateSnapshot } from "../lib/live-data";
 
 export const Route = createFileRoute("/aurum")({
   head: () => ({
@@ -18,16 +20,27 @@ export const Route = createFileRoute("/aurum")({
   component: AurumPage,
 });
 
-const facts = [
-  { k: "Peg", v: "1 AURUM = 1 USDC" },
-  { k: "Backing", v: "USDC + short-duration treasuries" },
-  { k: "Reserve ratio", v: "102.4% over-collateralized" },
-  { k: "Chain", v: "Sui mainnet" },
-  { k: "Mint / redeem", v: "Permissionless, 1:1" },
-  { k: "Composability", v: "Native Move object" },
-];
+const usdcRateQuery = queryOptions({
+  queryKey: ["usdc-rate-live"],
+  queryFn: fetchUsdcRateSnapshot,
+  staleTime: 10_000,
+  refetchInterval: 30_000,
+});
 
 function AurumPage() {
+  const { data } = useQuery(usdcRateQuery);
+  const rate = data?.usdcUsd ?? 1;
+  const source = data?.source ?? "coinbase";
+  const previewAmount = (100 * rate).toFixed(2);
+  const facts = [
+    { k: "Live USDC/USD", v: `${rate.toFixed(4)} (${source})` },
+    { k: "Forge preview", v: `100 USDC -> ${previewAmount} AURUM` },
+    { k: "Backing", v: "USDC + short-duration treasuries" },
+    { k: "Reserve ratio", v: "Live on-chain proof in /reserves" },
+    { k: "Chain", v: "Sui testnet" },
+    { k: "Mint / redeem", v: "Permissionless, market-rate aware" },
+    { k: "Composability", v: "Native Move object" },
+  ];
   return (
     <PageShell
       eyebrow="AURUM"

@@ -14,7 +14,6 @@ import "@mysten/dapp-kit/dist/index.css";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { WaitlistModalProvider } from "../components/landing/WaitlistModal";
 
 const { networkConfig } = createNetworkConfig({
   testnet: { url: "https://fullnode.testnet.sui.io:443" },
@@ -137,10 +136,8 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <SuiClientProvider networks={networkConfig} defaultNetwork="testnet">
         <WalletProvider autoConnect={false} storage={null}>
-          <WaitlistModalProvider>
-            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-            <Outlet />
-          </WaitlistModalProvider>
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
         </WalletProvider>
       </SuiClientProvider>
     </QueryClientProvider>
