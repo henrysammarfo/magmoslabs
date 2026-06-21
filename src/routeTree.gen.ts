@@ -16,6 +16,7 @@ import { Route as DocsRouteImport } from './routes/docs'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AurumRouteImport } from './routes/aurum'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DocsSlugRouteImport } from './routes/docs.$slug'
 
 const SaurumRoute = SaurumRouteImport.update({
   id: '/saurum',
@@ -52,34 +53,42 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocsSlugRoute = DocsSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => DocsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/aurum': typeof AurumRoute
   '/dashboard': typeof DashboardRoute
-  '/docs': typeof DocsRoute
+  '/docs': typeof DocsRouteWithChildren
   '/protocol': typeof ProtocolRoute
   '/reserves': typeof ReservesRoute
   '/saurum': typeof SaurumRoute
+  '/docs/$slug': typeof DocsSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/aurum': typeof AurumRoute
   '/dashboard': typeof DashboardRoute
-  '/docs': typeof DocsRoute
+  '/docs': typeof DocsRouteWithChildren
   '/protocol': typeof ProtocolRoute
   '/reserves': typeof ReservesRoute
   '/saurum': typeof SaurumRoute
+  '/docs/$slug': typeof DocsSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/aurum': typeof AurumRoute
   '/dashboard': typeof DashboardRoute
-  '/docs': typeof DocsRoute
+  '/docs': typeof DocsRouteWithChildren
   '/protocol': typeof ProtocolRoute
   '/reserves': typeof ReservesRoute
   '/saurum': typeof SaurumRoute
+  '/docs/$slug': typeof DocsSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
     | '/protocol'
     | '/reserves'
     | '/saurum'
+    | '/docs/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +110,7 @@ export interface FileRouteTypes {
     | '/protocol'
     | '/reserves'
     | '/saurum'
+    | '/docs/$slug'
   id:
     | '__root__'
     | '/'
@@ -109,13 +120,14 @@ export interface FileRouteTypes {
     | '/protocol'
     | '/reserves'
     | '/saurum'
+    | '/docs/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AurumRoute: typeof AurumRoute
   DashboardRoute: typeof DashboardRoute
-  DocsRoute: typeof DocsRoute
+  DocsRoute: typeof DocsRouteWithChildren
   ProtocolRoute: typeof ProtocolRoute
   ReservesRoute: typeof ReservesRoute
   SaurumRoute: typeof SaurumRoute
@@ -172,14 +184,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/docs/$slug': {
+      id: '/docs/$slug'
+      path: '/$slug'
+      fullPath: '/docs/$slug'
+      preLoaderRoute: typeof DocsSlugRouteImport
+      parentRoute: typeof DocsRoute
+    }
   }
 }
+
+interface DocsRouteChildren {
+  DocsSlugRoute: typeof DocsSlugRoute
+}
+
+const DocsRouteChildren: DocsRouteChildren = {
+  DocsSlugRoute: DocsSlugRoute,
+}
+
+const DocsRouteWithChildren = DocsRoute._addFileChildren(DocsRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AurumRoute: AurumRoute,
   DashboardRoute: DashboardRoute,
-  DocsRoute: DocsRoute,
+  DocsRoute: DocsRouteWithChildren,
   ProtocolRoute: ProtocolRoute,
   ReservesRoute: ReservesRoute,
   SaurumRoute: SaurumRoute,

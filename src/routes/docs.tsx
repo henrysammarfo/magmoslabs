@@ -6,7 +6,7 @@ import { DocsSkeleton } from "../components/landing/DocsSkeleton";
 import { ErrorState } from "../components/landing/ErrorState";
 import { fetchDocs } from "../lib/live-data";
 
-const docsQuery = queryOptions({
+export const docsQuery = queryOptions({
   queryKey: ["docs"],
   queryFn: fetchDocs,
   staleTime: 60_000,
@@ -79,7 +79,8 @@ function DocsPage() {
         {sections.map((s) => (
           <Link
             key={s.slug}
-            to="/docs"
+            to="/docs/$slug"
+            params={{ slug: s.slug }}
             className="magmos-card rounded-2xl p-6 group block"
           >
             <div className="flex items-start justify-between mb-3">
