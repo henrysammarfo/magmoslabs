@@ -495,6 +495,7 @@ function txAmountFromEvent(kind: TxKind, eventParsed: Record<string, unknown> | 
 }
 
 async function fetchAllTransactions(owner?: string): Promise<Transaction[]> {
+  if (!normalizeAddress(owner)) return [];
   const fetchByMoveCall = async (
     module: "aurum" | "saurum" | "automation",
     func: string,

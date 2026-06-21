@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Navigate, createFileRoute } from "@tanstack/react-router";
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
-import { ConnectButton, useCurrentAccount, useDisconnectWallet } from "@mysten/dapp-kit";
+import { useCurrentAccount, useDisconnectWallet } from "@mysten/dapp-kit";
 import { PageShell } from "../components/landing/PageShell";
 import { loadProfile, saveProfile } from "../lib/profile";
 
@@ -49,16 +49,7 @@ function ProfilePage() {
     setStatus("Profile saved.");
   };
 
-  if (!account?.address) {
-    return (
-      <PageShell eyebrow="Profile" title="Connect wallet to manage your profile">
-        <section className="bg-white rounded-2xl border border-black/5 p-8 flex items-center justify-between gap-6">
-          <p className="text-black/60">Profile settings are tied to your connected wallet.</p>
-          <ConnectButton connectText="Open Wallet" />
-        </section>
-      </PageShell>
-    );
-  }
+  if (!account?.address) return <Navigate to="/" />;
 
   return (
     <PageShell

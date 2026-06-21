@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { Navigate, createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { useCurrentAccount } from "@mysten/dapp-kit";
 import { useMemo } from "react";
@@ -22,7 +22,7 @@ import { loadProfile } from "../lib/profile";
 
 const dashboardQuery = queryOptions({
   queryKey: ["dashboard", { owner: "" }],
-  queryFn: () => fetchDashboard(),
+  queryFn: () => fetchDashboard(""),
   staleTime: 30_000,
 });
 
@@ -97,6 +97,7 @@ function DashboardChrome({ children }: { children: React.ReactNode }) {
 
 function DashboardPending() {
   const account = useCurrentAccount();
+  if (!account?.address) return <Navigate to="/" />;
   const displayName = useMemo(() => {
     const profileName = loadProfile(account?.address)?.name?.trim();
     return profileName || "Forgekeeper";
@@ -113,6 +114,7 @@ function DashboardPending() {
 function DashboardError({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
   const account = useCurrentAccount();
+  if (!account?.address) return <Navigate to="/" />;
   const displayName = useMemo(() => {
     const profileName = loadProfile(account?.address)?.name?.trim();
     return profileName || "Forgekeeper";
@@ -136,6 +138,7 @@ function DashboardError({ error, reset }: { error: Error; reset: () => void }) {
 
 function DashboardPage() {
   const account = useCurrentAccount();
+  if (!account?.address) return <Navigate to="/" />;
   const displayName = useMemo(() => {
     const profileName = loadProfile(account?.address)?.name?.trim();
     return profileName || "Forgekeeper";
@@ -190,10 +193,12 @@ function DashboardPage() {
 function DashboardWidgets() {
   const account = useCurrentAccount();
   const owner = account?.address ?? "";
+  if (!owner) return <Navigate to="/" />;
   const { data, isPending, isError, error, refetch } = useQuery({
     ...dashboardQuery,
     queryKey: ["dashboard", { owner }],
-    queryFn: () => fetchDashboard(owner || undefined),
+    queryFn: () => fetchDashboard(owner),
+    enabled: Boolean(owner),
   });
   if (isError) {
     return (
@@ -336,7 +341,7 @@ function DashboardWidgets() {
       </section>
 
       <div className="mt-10">
-        <TransactionsTable owner={owner || undefined} />
+        <TransactionsTable owner={owner} />
       </div>
 
       <section
