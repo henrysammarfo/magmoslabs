@@ -1,21 +1,26 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { useCurrentAccount } from "@mysten/dapp-kit";
 import { LogoIcon } from "./LogoIcon";
 import { OpenWalletButton } from "../wallet/OpenWalletButton";
 
-const links: { label: string; to: string }[] = [
-  { label: "Dashboard", to: "/dashboard" },
+const publicLinks: { label: string; to: string }[] = [
   { label: "Protocol", to: "/protocol" },
   { label: "AURUM", to: "/aurum" },
   { label: "sAURUM", to: "/saurum" },
   { label: "Reserves", to: "/reserves" },
+];
+
+const protectedLinks: { label: string; to: string }[] = [
+  { label: "Dashboard", to: "/dashboard" },
   { label: "Profile", to: "/profile" },
-  { label: "Docs", to: "/docs" },
 ];
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const account = useCurrentAccount();
+  const links = account?.address ? [...publicLinks, ...protectedLinks] : publicLinks;
 
   return (
     <header className="absolute top-0 left-0 right-0 z-20 px-6 py-5">

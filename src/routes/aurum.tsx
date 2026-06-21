@@ -70,7 +70,7 @@ function AurumPage() {
   const [forgeAmount, setForgeAmount] = useState("10");
   const [smeltAmount, setSmeltAmount] = useState("1");
   const [withdrawAmount, setWithdrawAmount] = useState("1");
-  const [withdrawMode, setWithdrawMode] = useState<"aurum" | "saurum">("aurum");
+  const [withdrawMode, setWithdrawMode] = useState<"aurum" | "saurum" | "saurum-usdc">("aurum");
   const [status, setStatus] = useState<string>("");
   const rate = data?.usdcUsd ?? 1;
   const source = data?.source ?? "coinbase";
@@ -148,7 +148,7 @@ function AurumPage() {
           arguments: [tx.object(TREASURY_ID), aurum],
         });
         tx.transferObjects([usdc], account!.address);
-      } else {
+      } else if (withdrawMode === "saurum") {
         setStatus("Preparing sAURUM withdrawal...");
         const coin = await getCoinWithBalance(SAURUM_TYPE, amount);
         const saurum = tx.splitCoins(tx.object(coin.coinObjectId), [tx.pure.u64(amount)]);
@@ -158,13 +158,30 @@ function AurumPage() {
           arguments: [tx.object(VAULT_ID), tx.object(TREASURY_ID), saurum],
         });
         tx.transferObjects([aurum], account!.address);
+      } else {
+        setStatus("Preparing sAURUM to USDC withdrawal...");
+        const coin = await getCoinWithBalance(SAURUM_TYPE, amount);
+        const saurum = tx.splitCoins(tx.object(coin.coinObjectId), [tx.pure.u64(amount)]);
+        const aurum = tx.moveCall({
+          target: `${MAGMOS_PACKAGE_ID}::saurum::refine`,
+          typeArguments: [USDC_TYPE],
+          arguments: [tx.object(VAULT_ID), tx.object(TREASURY_ID), saurum],
+        });
+        const usdc = tx.moveCall({
+          target: `${MAGMOS_PACKAGE_ID}::aurum::melt`,
+          typeArguments: [USDC_TYPE],
+          arguments: [tx.object(TREASURY_ID), aurum],
+        });
+        tx.transferObjects([usdc], account!.address);
       }
 
       const result = await signAndExecuteTransaction({ transaction: tx });
       setStatus(
         withdrawMode === "aurum"
           ? `Withdraw (AURUM -> USDC) submitted: ${result.digest}`
-          : `Withdraw (sAURUM -> AURUM) submitted: ${result.digest}`,
+          : withdrawMode === "saurum"
+            ? `Withdraw (sAURUM -> AURUM) submitted: ${result.digest}`
+            : `Withdraw (sAURUM -> USDC) submitted: ${result.digest}`,
       );
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Withdraw failed.");
@@ -261,6 +278,17 @@ function AurumPage() {
             }`}
           >
             sAURUM to AURUM
+          </button>
+          <button
+            type="button"
+            onClick={() => setWithdrawMode("saurum-usdc")}
+            className={`rounded-full px-4 py-2 border ${
+              withdrawMode === "saurum-usdc"
+                ? "bg-black text-white border-black"
+                : "bg-white text-black border-black/15"
+            }`}
+          >
+            sAURUM to USDC
           </button>
         </div>
         <input
