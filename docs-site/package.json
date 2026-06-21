@@ -1,0 +1,8 @@
+{
+  "name": "magmos-docs-site",
+  "private": true,
+  "scripts": {
+    "dev": "npx mintlify dev",
+    "build": "npx mintlify build"
+  }
+}
