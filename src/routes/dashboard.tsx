@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { Navigate, createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { useCurrentAccount } from "@mysten/dapp-kit";
 import { useMemo } from "react";
@@ -97,6 +97,7 @@ function DashboardChrome({ children }: { children: React.ReactNode }) {
 
 function DashboardPending() {
   const account = useCurrentAccount();
+  if (!account?.address) return <Navigate to="/" />;
   const displayName = useMemo(() => {
     const profileName = loadProfile(account?.address)?.name?.trim();
     return profileName || "Forgekeeper";
@@ -113,6 +114,7 @@ function DashboardPending() {
 function DashboardError({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
   const account = useCurrentAccount();
+  if (!account?.address) return <Navigate to="/" />;
   const displayName = useMemo(() => {
     const profileName = loadProfile(account?.address)?.name?.trim();
     return profileName || "Forgekeeper";
@@ -136,6 +138,7 @@ function DashboardError({ error, reset }: { error: Error; reset: () => void }) {
 
 function DashboardPage() {
   const account = useCurrentAccount();
+  if (!account?.address) return <Navigate to="/" />;
   const displayName = useMemo(() => {
     const profileName = loadProfile(account?.address)?.name?.trim();
     return profileName || "Forgekeeper";
