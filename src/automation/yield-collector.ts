@@ -1,5 +1,5 @@
 import { Transaction } from "@mysten/sui/transactions";
-import { fetchProtocolSnapshot } from "@/lib/mock-data";
+import { fetchProtocolSnapshot } from "@/lib/live-data";
 import { fetchBlendedYieldSnapshot } from "@/protocols/index";
 
 export interface YieldCollectorConfig {

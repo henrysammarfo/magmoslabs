@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { PageShell } from "../components/landing/PageShell";
 import { ErrorState } from "../components/landing/ErrorState";
-import { fetchProtocolSnapshot } from "../lib/mock-data";
+import { fetchProtocolSnapshot } from "../lib/live-data";
 
 export const Route = createFileRoute("/reserves")({
   head: () => ({

@@ -16,7 +16,7 @@ import { EarningsChart } from "../components/dashboard/EarningsChart";
 import { DashboardSkeleton } from "../components/dashboard/DashboardSkeleton";
 import { TransactionsTable } from "../components/dashboard/TransactionsTable";
 import { useWaitlistModal } from "../components/landing/WaitlistModal";
-import { fetchDashboard, type Balance } from "../lib/mock-data";
+import { fetchDashboard, type Balance } from "../lib/live-data";
 
 const dashboardQuery = queryOptions({
   queryKey: ["dashboard"],

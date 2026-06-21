@@ -11,7 +11,7 @@ import {
   ArrowUpRight,
   ArrowDownLeft,
 } from "lucide-react";
-import { fetchTransactions, formatTxTime, type TxKind, type TxStatus } from "../../lib/mock-data";
+import { fetchTransactions, formatTxTime, type TxKind, type TxStatus } from "../../lib/live-data";
 import { Skeleton } from "../landing/Skeleton";
 import { ErrorState } from "../landing/ErrorState";
 

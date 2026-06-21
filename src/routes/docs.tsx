@@ -4,7 +4,7 @@ import { ArrowUpRight } from "lucide-react";
 import { PageShell } from "../components/landing/PageShell";
 import { DocsSkeleton } from "../components/landing/DocsSkeleton";
 import { ErrorState } from "../components/landing/ErrorState";
-import { fetchDocs } from "../lib/mock-data";
+import { fetchDocs } from "../lib/live-data";
 
 const docsQuery = queryOptions({
   queryKey: ["docs"],

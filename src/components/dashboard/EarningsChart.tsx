@@ -1,4 +1,4 @@
-import type { EarningsPoint } from "../../lib/mock-data";
+import type { EarningsPoint } from "../../lib/live-data";
 
 interface Props {
   data: EarningsPoint[];
