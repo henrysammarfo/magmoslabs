@@ -21,11 +21,49 @@ import { fetchDashboard, type Balance } from "../lib/mock-data";
 
 const dashboardQuery = queryOptions({
   queryKey: ["dashboard"],
-  queryFn: fetchDashboard,
+  queryFn: async () =>
+    fetchDashboard().catch(() => ({
+      balances: [
+        {
+          label: "AURUM supply",
+          value: "0.00",
+          suffix: "AURUM",
+          sub: "≈ $0.00",
+          iconKey: "wallet" as const,
+        },
+        {
+          label: "sAURUM backing",
+          value: "0.00",
+          suffix: "AURUM",
+          sub: "Index 1.0000",
+          iconKey: "layers" as const,
+        },
+        {
+          label: "Accrued protocol fees",
+          value: "+0.00",
+          suffix: "USDC",
+          sub: "10% fee lane",
+          iconKey: "trending" as const,
+        },
+        {
+          label: "Live APY (est.)",
+          value: "0.00%",
+          suffix: "",
+          sub: "Blended from live adapters",
+          iconKey: "activity" as const,
+        },
+      ],
+      positions: [],
+      activity: [],
+      earnings: Array.from({ length: 12 }, (_, i) => ({ day: `W${i + 1}`, value: 0 })),
+      reserveRatio: "100.0%",
+      totalBacking: "$0.00",
+    })),
   staleTime: 30_000,
 });
 
 export const Route = createFileRoute("/dashboard")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Dashboard — Magmos" },
@@ -45,7 +83,11 @@ export const Route = createFileRoute("/dashboard")({
   errorComponent: DashboardError,
   notFoundComponent: () => (
     <DashboardChrome>
-      <ErrorState title="Page not found." message="That dashboard view doesn't exist." homeHref="/dashboard" />
+      <ErrorState
+        title="Page not found."
+        message="That dashboard view doesn't exist."
+        homeHref="/dashboard"
+      />
     </DashboardChrome>
   ),
 });
@@ -62,7 +104,10 @@ function DashboardHeaderShell() {
     <header className="flex flex-wrap items-end justify-between gap-6 mb-10">
       <div>
         <p className="text-sm text-black/50 uppercase tracking-widest mb-3">Dashboard</p>
-        <h1 className="text-black text-4xl md:text-5xl font-medium" style={{ letterSpacing: "-0.04em" }}>
+        <h1
+          className="text-black text-4xl md:text-5xl font-medium"
+          style={{ letterSpacing: "-0.04em" }}
+        >
           Welcome back, Forgekeeper.
         </h1>
         <p className="text-black/60 mt-3 max-w-xl">
@@ -129,7 +174,8 @@ function DashboardPage() {
             Welcome back, Forgekeeper.
           </h1>
           <p className="text-black/60 mt-3 max-w-xl">
-            Your AURUM stays $1. Your sAURUM compounds while you sleep. Track everything in one place.
+            Your AURUM stays $1. Your sAURUM compounds while you sleep. Track everything in one
+            place.
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -174,7 +220,9 @@ function DashboardWidgets() {
           <div
             aria-hidden="true"
             className="pointer-events-none absolute -top-24 -right-24 w-72 h-72 rounded-full opacity-60"
-            style={{ background: "radial-gradient(circle, rgba(200,160,74,0.18), transparent 65%)" }}
+            style={{
+              background: "radial-gradient(circle, rgba(200,160,74,0.18), transparent 65%)",
+            }}
           />
           <div className="relative flex flex-wrap items-end justify-between gap-3 mb-6">
             <div>
@@ -188,7 +236,10 @@ function DashboardWidgets() {
               <p className="text-sm text-black/50 mt-1">Last 12 weeks · USDC denominated</p>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-3xl font-medium text-black tabular-nums" style={{ letterSpacing: "-0.03em" }}>
+              <span
+                className="text-3xl font-medium text-black tabular-nums"
+                style={{ letterSpacing: "-0.03em" }}
+              >
                 +${data.earnings[data.earnings.length - 1].value}
               </span>
               <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-[#C8A04A]/15 text-[#8B6A22] font-medium">
@@ -201,10 +252,7 @@ function DashboardWidgets() {
           </div>
         </section>
 
-        <section
-          aria-labelledby="activity-title"
-          className="magmos-card rounded-3xl p-6 sm:p-8"
-        >
+        <section aria-labelledby="activity-title" className="magmos-card rounded-3xl p-6 sm:p-8">
           <h2
             id="activity-title"
             className="text-2xl font-medium text-black mb-6"
@@ -347,7 +395,9 @@ function BalanceGrid({ balances }: { balances: Balance[] }) {
               <span
                 aria-hidden="true"
                 className="absolute -top-12 -right-12 w-32 h-32 rounded-full opacity-50"
-                style={{ background: "radial-gradient(circle, rgba(200,160,74,0.18), transparent 70%)" }}
+                style={{
+                  background: "radial-gradient(circle, rgba(200,160,74,0.18), transparent 70%)",
+                }}
               />
               <div className="relative flex items-center justify-between mb-6">
                 <span className="text-sm text-black/50">{b.label}</span>
@@ -355,7 +405,10 @@ function BalanceGrid({ balances }: { balances: Balance[] }) {
                   <Icon className="w-4 h-4 text-black" />
                 </span>
               </div>
-              <div className="relative text-3xl font-medium text-black" style={{ letterSpacing: "-0.03em" }}>
+              <div
+                className="relative text-3xl font-medium text-black"
+                style={{ letterSpacing: "-0.03em" }}
+              >
                 {b.value}
                 {b.suffix && <span className="text-base text-black/40 ml-2">{b.suffix}</span>}
               </div>
