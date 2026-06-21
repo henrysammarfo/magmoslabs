@@ -98,7 +98,7 @@ function DocsPage() {
             >
               {s.title}
             </h2>
-            <p className="text-black/60 leading-relaxed">{s.body}</p>
+            <p className="text-black/60 leading-relaxed break-words">{s.body}</p>
           </Link>
         ))}
       </div>

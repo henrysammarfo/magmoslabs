@@ -37,7 +37,7 @@ function DocDetailPage() {
           <ArrowLeft className="w-4 h-4" />
           Back to docs
         </Link>
-        <p className="text-lg text-black/70 leading-relaxed">{section.body}</p>
+        <p className="text-lg text-black/70 leading-relaxed break-words">{section.body}</p>
       </div>
     </PageShell>
   );
