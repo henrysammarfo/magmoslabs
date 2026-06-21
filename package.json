@@ -9,6 +9,8 @@
     "build:vercel": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
+    "docs:dev": "npx mintlify dev",
+    "docs:build": "npx mintlify build",
     "lint": "eslint .",
     "format": "prettier --write .",
     "ops:start": "node --env-file=.env --import tsx yield-optimizer/start.ts",
