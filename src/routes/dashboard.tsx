@@ -1,5 +1,7 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { queryOptions, useQuery } from "@tanstack/react-query";
+import { useCurrentAccount } from "@mysten/dapp-kit";
+import { useMemo } from "react";
 import {
   ArrowUpRight,
   TrendingUp,
@@ -16,6 +18,7 @@ import { EarningsChart } from "../components/dashboard/EarningsChart";
 import { DashboardSkeleton } from "../components/dashboard/DashboardSkeleton";
 import { TransactionsTable } from "../components/dashboard/TransactionsTable";
 import { fetchDashboard, type Balance } from "../lib/live-data";
+import { loadProfile } from "../lib/profile";
 
 const dashboardQuery = queryOptions({
   queryKey: ["dashboard"],
@@ -59,7 +62,7 @@ const iconMap = {
   activity: Activity,
 } as const;
 
-function DashboardHeaderShell() {
+function DashboardHeaderShell({ displayName }: { displayName: string }) {
   return (
     <header className="flex flex-wrap items-end justify-between gap-6 mb-10">
       <div>
@@ -68,7 +71,7 @@ function DashboardHeaderShell() {
           className="text-black text-4xl md:text-5xl font-medium"
           style={{ letterSpacing: "-0.04em" }}
         >
-          Welcome back, Forgekeeper.
+          Welcome back, {displayName}.
         </h1>
         <p className="text-black/60 mt-3 max-w-xl">
           Your AURUM stays $1. Your sAURUM compounds while you sleep. Track everything in one place.
@@ -93,9 +96,15 @@ function DashboardChrome({ children }: { children: React.ReactNode }) {
 }
 
 function DashboardPending() {
+  const account = useCurrentAccount();
+  const displayName = useMemo(() => {
+    const profileName = loadProfile(account?.address)?.name?.trim();
+    return profileName || "Forgekeeper";
+  }, [account?.address]);
+
   return (
     <DashboardChrome>
-      <DashboardHeaderShell />
+      <DashboardHeaderShell displayName={displayName} />
       <DashboardSkeleton />
     </DashboardChrome>
   );
@@ -103,9 +112,14 @@ function DashboardPending() {
 
 function DashboardError({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
+  const account = useCurrentAccount();
+  const displayName = useMemo(() => {
+    const profileName = loadProfile(account?.address)?.name?.trim();
+    return profileName || "Forgekeeper";
+  }, [account?.address]);
   return (
     <DashboardChrome>
-      <DashboardHeaderShell />
+      <DashboardHeaderShell displayName={displayName} />
       <ErrorState
         title="Your dashboard didn't load."
         message="We couldn't reach the yield indexer. Your positions are safe on-chain — only this view failed. Try again, or head home while we recover."
@@ -121,6 +135,12 @@ function DashboardError({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 function DashboardPage() {
+  const account = useCurrentAccount();
+  const displayName = useMemo(() => {
+    const profileName = loadProfile(account?.address)?.name?.trim();
+    return profileName || "Forgekeeper";
+  }, [account?.address]);
+
   return (
     <DashboardChrome>
       <header className="flex flex-wrap items-end justify-between gap-6 mb-10">
@@ -130,7 +150,7 @@ function DashboardPage() {
             className="text-black text-4xl md:text-5xl font-medium"
             style={{ letterSpacing: "-0.04em" }}
           >
-            Welcome back, Forgekeeper.
+            Welcome back, {displayName}.
           </h1>
           <p className="text-black/60 mt-3 max-w-xl">
             Your AURUM stays $1. Your sAURUM compounds while you sleep. Track everything in one

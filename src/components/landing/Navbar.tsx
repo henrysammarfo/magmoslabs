@@ -9,6 +9,7 @@ const links: { label: string; to: string }[] = [
   { label: "AURUM", to: "/aurum" },
   { label: "sAURUM", to: "/saurum" },
   { label: "Reserves", to: "/reserves" },
+  { label: "Profile", to: "/profile" },
   { label: "Docs", to: "/docs" },
 ];
 

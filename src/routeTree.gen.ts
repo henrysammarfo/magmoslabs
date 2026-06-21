@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SaurumRouteImport } from './routes/saurum'
 import { Route as ReservesRouteImport } from './routes/reserves'
 import { Route as ProtocolRouteImport } from './routes/protocol'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AurumRouteImport } from './routes/aurum'
@@ -31,6 +32,11 @@ const ReservesRoute = ReservesRouteImport.update({
 const ProtocolRoute = ProtocolRouteImport.update({
   id: '/protocol',
   path: '/protocol',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DocsRoute = DocsRouteImport.update({
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/aurum': typeof AurumRoute
   '/dashboard': typeof DashboardRoute
   '/docs': typeof DocsRouteWithChildren
+  '/profile': typeof ProfileRoute
   '/protocol': typeof ProtocolRoute
   '/reserves': typeof ReservesRoute
   '/saurum': typeof SaurumRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/aurum': typeof AurumRoute
   '/dashboard': typeof DashboardRoute
   '/docs': typeof DocsRouteWithChildren
+  '/profile': typeof ProfileRoute
   '/protocol': typeof ProtocolRoute
   '/reserves': typeof ReservesRoute
   '/saurum': typeof SaurumRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/aurum': typeof AurumRoute
   '/dashboard': typeof DashboardRoute
   '/docs': typeof DocsRouteWithChildren
+  '/profile': typeof ProfileRoute
   '/protocol': typeof ProtocolRoute
   '/reserves': typeof ReservesRoute
   '/saurum': typeof SaurumRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/aurum'
     | '/dashboard'
     | '/docs'
+    | '/profile'
     | '/protocol'
     | '/reserves'
     | '/saurum'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/aurum'
     | '/dashboard'
     | '/docs'
+    | '/profile'
     | '/protocol'
     | '/reserves'
     | '/saurum'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/aurum'
     | '/dashboard'
     | '/docs'
+    | '/profile'
     | '/protocol'
     | '/reserves'
     | '/saurum'
@@ -128,6 +140,7 @@ export interface RootRouteChildren {
   AurumRoute: typeof AurumRoute
   DashboardRoute: typeof DashboardRoute
   DocsRoute: typeof DocsRouteWithChildren
+  ProfileRoute: typeof ProfileRoute
   ProtocolRoute: typeof ProtocolRoute
   ReservesRoute: typeof ReservesRoute
   SaurumRoute: typeof SaurumRoute
@@ -154,6 +167,13 @@ declare module '@tanstack/react-router' {
       path: '/protocol'
       fullPath: '/protocol'
       preLoaderRoute: typeof ProtocolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/docs': {
@@ -209,6 +229,7 @@ const rootRouteChildren: RootRouteChildren = {
   AurumRoute: AurumRoute,
   DashboardRoute: DashboardRoute,
   DocsRoute: DocsRouteWithChildren,
+  ProfileRoute: ProfileRoute,
   ProtocolRoute: ProtocolRoute,
   ReservesRoute: ReservesRoute,
   SaurumRoute: SaurumRoute,
