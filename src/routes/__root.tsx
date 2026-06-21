@@ -8,10 +8,17 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { SuiClientProvider, WalletProvider, createNetworkConfig } from "@mysten/dapp-kit";
+// @ts-expect-error - package css side-effect import
+import "@mysten/dapp-kit/dist/index.css";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { WaitlistModalProvider } from "../components/landing/WaitlistModal";
+
+const { networkConfig } = createNetworkConfig({
+  testnet: { url: "https://fullnode.testnet.sui.io:443" },
+});
 
 function NotFoundComponent() {
   return (
@@ -119,10 +126,14 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <WaitlistModalProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
-      </WaitlistModalProvider>
+      <SuiClientProvider networks={networkConfig} defaultNetwork="testnet">
+        <WalletProvider autoConnect={false} storage={null}>
+          <WaitlistModalProvider>
+            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+            <Outlet />
+          </WaitlistModalProvider>
+        </WalletProvider>
+      </SuiClientProvider>
     </QueryClientProvider>
   );
 }
