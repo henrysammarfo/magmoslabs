@@ -20,44 +20,7 @@ import { fetchDashboard, type Balance } from "../lib/mock-data";
 
 const dashboardQuery = queryOptions({
   queryKey: ["dashboard"],
-  queryFn: async () =>
-    fetchDashboard().catch(() => ({
-      balances: [
-        {
-          label: "AURUM supply",
-          value: "0.00",
-          suffix: "AURUM",
-          sub: "≈ $0.00",
-          iconKey: "wallet" as const,
-        },
-        {
-          label: "sAURUM backing",
-          value: "0.00",
-          suffix: "AURUM",
-          sub: "Index 1.0000",
-          iconKey: "layers" as const,
-        },
-        {
-          label: "Accrued protocol fees",
-          value: "+0.00",
-          suffix: "USDC",
-          sub: "10% fee lane",
-          iconKey: "trending" as const,
-        },
-        {
-          label: "Live APY (est.)",
-          value: "0.00%",
-          suffix: "",
-          sub: "Blended from live adapters",
-          iconKey: "activity" as const,
-        },
-      ],
-      positions: [],
-      activity: [],
-      earnings: Array.from({ length: 12 }, (_, i) => ({ day: `W${i + 1}`, value: 0 })),
-      reserveRatio: "100.0%",
-      totalBacking: "$0.00",
-    })),
+  queryFn: fetchDashboard,
   staleTime: 30_000,
 });
 
@@ -202,7 +165,17 @@ function DashboardPage() {
 }
 
 function DashboardWidgets() {
-  const { data, isPending } = useQuery(dashboardQuery);
+  const { data, isPending, isError, error, refetch } = useQuery(dashboardQuery);
+  if (isError) {
+    return (
+      <ErrorState
+        title="Your dashboard didn't load."
+        message="Live data sources did not respond. Retry to fetch on-chain state again."
+        details={error.message}
+        onRetry={() => void refetch()}
+      />
+    );
+  }
   if (isPending || !data) return <DashboardSkeleton />;
 
   return (

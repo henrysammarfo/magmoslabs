@@ -188,24 +188,8 @@ export async function fetchProtocolSnapshot(): Promise<ProtocolSnapshot> {
 }
 
 export async function fetchDashboard(): Promise<DashboardData> {
-  const snapshot = await fetchProtocolSnapshot().catch(() => ({
-    accumulationIndex: 1,
-    totalAurumSupply: 0,
-    totalAurumStaked: 0,
-    accruedProtocolFees: 0,
-    reserves: 0,
-    protocolFeeBps: 1000,
-    scallopBps: 5000,
-    aftermathBps: 3000,
-    deepbookBps: 2000,
-  }));
-  const txPage = await fetchTransactions({ page: 1, pageSize: 12 }).catch(() => ({
-    rows: [] as Transaction[],
-    total: 0,
-    page: 1,
-    pageSize: 12,
-    totalPages: 0,
-  }));
+  const snapshot = await fetchProtocolSnapshot();
+  const txPage = await fetchTransactions({ page: 1, pageSize: 12 });
   const blended = await fetchBlendedYieldSnapshot(
     {
       scallopBps: snapshot.scallopBps,
@@ -219,18 +203,6 @@ export async function fetchDashboard(): Promise<DashboardData> {
       aftermathBearerToken: import.meta.env.VITE_AFTERMATH_BEARER_TOKEN as string | undefined,
       deepbookSummaryUrl: import.meta.env.VITE_DEEPBOOK_SUMMARY_URL as string | undefined,
     },
-  ).catch(
-    () =>
-      ({
-        blendedAprBps: 0,
-        quotes: [],
-        allocation: {
-          scallopBps: snapshot.scallopBps,
-          aftermathBps: snapshot.aftermathBps,
-          deepbookBps: snapshot.deepbookBps,
-        },
-        fetchedAtMs: Date.now(),
-      }) as Awaited<ReturnType<typeof fetchBlendedYieldSnapshot>>,
   );
   const quoteMap = new Map(blended.quotes.map((q) => [q.source, q]));
 

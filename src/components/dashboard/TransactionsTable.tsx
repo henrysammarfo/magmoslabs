@@ -51,14 +51,7 @@ export function TransactionsTable() {
 
   const query = useQuery({
     queryKey: ["transactions", { search: debounced, kind, status, page, pageSize }],
-    queryFn: () =>
-      fetchTransactions({ search: debounced, kind, status, page, pageSize }).catch(() => ({
-        rows: [],
-        total: 0,
-        page: 1,
-        pageSize,
-        totalPages: 1,
-      })),
+    queryFn: () => fetchTransactions({ search: debounced, kind, status, page, pageSize }),
     placeholderData: keepPreviousData,
     staleTime: 15_000,
   });

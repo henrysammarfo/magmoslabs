@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { PageShell } from "../components/landing/PageShell";
+import { ErrorState } from "../components/landing/ErrorState";
+import { fetchProtocolSnapshot } from "../lib/mock-data";
 
 export const Route = createFileRoute("/reserves")({
   head: () => ({
@@ -18,13 +21,64 @@ export const Route = createFileRoute("/reserves")({
   component: ReservesPage,
 });
 
-const reserves = [
-  { asset: "USDC (Sui)", amount: "$18,420,118", share: "74%" },
-  { asset: "T-Bill backed (BlackRock BUIDL)", amount: "$5,128,402", share: "21%" },
-  { asset: "Yield buffer", amount: "$1,250,000", share: "5%" },
-];
+const reservesQuery = queryOptions({
+  queryKey: ["reserves-live"],
+  queryFn: fetchProtocolSnapshot,
+  staleTime: 2_000,
+  refetchInterval: 5_000,
+  refetchOnMount: "always",
+  refetchOnWindowFocus: true,
+});
+
+function money(v: number): string {
+  return `$${v.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+}
 
 function ReservesPage() {
+  const { data, isPending, isError, error, refetch } = useQuery(reservesQuery);
+  if (isPending || !data) {
+    return (
+      <PageShell
+        eyebrow="Reserves"
+        title="Backing you can verify in a single transaction."
+        description="Loading live reserve state from Sui testnet."
+      />
+    );
+  }
+  if (isError) {
+    return (
+      <PageShell
+        eyebrow="Reserves"
+        title="Backing you can verify in a single transaction."
+        description="Magmos reserves live in transparent on-chain vaults."
+      >
+        <ErrorState
+          title="Reserves unavailable."
+          message="We couldn't read live reserve data from Sui right now."
+          details={error.message}
+          onRetry={() => void refetch()}
+        />
+      </PageShell>
+    );
+  }
+  const reserves = [
+    {
+      asset: "Scallop Allocation",
+      amount: money((data.reserves * data.scallopBps) / 10_000),
+      share: `${(data.scallopBps / 100).toFixed(0)}%`,
+    },
+    {
+      asset: "Aftermath Allocation",
+      amount: money((data.reserves * data.aftermathBps) / 10_000),
+      share: `${(data.aftermathBps / 100).toFixed(0)}%`,
+    },
+    {
+      asset: "DeepBook Allocation",
+      amount: money((data.reserves * data.deepbookBps) / 10_000),
+      share: `${(data.deepbookBps / 100).toFixed(0)}%`,
+    },
+  ];
+
   return (
     <PageShell
       eyebrow="Reserves"
@@ -49,7 +103,7 @@ function ReservesPage() {
         </ul>
         <div className="px-8 py-5 bg-black/[0.02] flex items-center justify-between">
           <span className="text-black font-medium">Total backing</span>
-          <span className="text-black font-medium tabular-nums">$24,798,520</span>
+          <span className="text-black font-medium tabular-nums">{money(data.reserves)}</span>
         </div>
       </div>
     </PageShell>
